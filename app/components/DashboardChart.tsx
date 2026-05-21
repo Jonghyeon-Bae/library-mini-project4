@@ -1,7 +1,9 @@
 'use client';
 import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
+import { bookProps } from '../page';
 
-export default function DashboardChart({ books }) {
+
+export default function DashboardChart({ books }: { books: bookProps[] }) {
   if (!books || books.length === 0) return null;
 
   // 데이터 가공하기

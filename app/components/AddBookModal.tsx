@@ -5,15 +5,31 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { pb } from '../lib/pocketbase';
 import { searchBookFromKakao } from '../lib/kakaoApi';
 import { Search, X } from 'lucide-react';
+import bookProps from '../page';
 
-export default function AddBookModal({ isOpen, onClose }) {
+interface AddBookModalProps{
+  isOpen:boolean
+  onClose:()=>void
+}
+
+
+interface NewBookProps{
+  id?:string
+  title?:string
+  authors?:string
+  publisher?:string
+  thumbnail?:string
+  isAvailable?:boolean
+}
+
+export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
   const queryClient = useQueryClient();
   const [keyword, setKeyword] = useState('');
   const [results, setResults] = useState([]);
 
   // DB에 저장하는 Mutation
   const addMutation = useMutation({
-    mutationFn: (newBook) => pb.collection('books').create(newBook),
+    mutationFn: (newBook: NewBookProps) => pb.collection('books').create(newBook),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['books'] }); // 저장 성공시 목록 새로고침!
       alert('도서가 등록되었습니다!');
@@ -47,16 +63,16 @@ export default function AddBookModal({ isOpen, onClose }) {
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {results.map((book, idx) => (
+          {results.map((book:NewBookProps , idx) => (
             <div key={idx} className="flex gap-4 items-center border-b pb-4">
               <img src={book.thumbnail || "https://via.placeholder.com/50"} alt="표지" className="w-12 object-cover" />
               <div className="flex-1">
                 <p className="font-bold line-clamp-1">{book.title}</p>
-                <p className="text-sm text-gray-500">{book.authors.join(', ')}</p>
+                <p className="text-sm text-gray-500">{book.authors?.join(', ')}</p>
               </div>
               <button 
                 onClick={() => addMutation.mutate({
-                  title: book.title, author: book.authors.join(', '),
+                  title: book.title, authors: book.authors?.join(', '),
                   publisher: book.publisher, thumbnail: book.thumbnail, isAvailable: true,
                 })}
                 className="bg-gray-800 text-white px-3 py-1 rounded"

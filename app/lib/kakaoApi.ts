@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-export const searchBookFromKakao = async (query) => {
-  const KAKAO_API_KEY = "멘토님의_API_키를_여기에_넣어주세요";
+export const searchBookFromKakao = async (query:string) => {
+  const KAKAO_API_KEY = "704cbb07d0d423e22cd58f5d1deaab9c";
   const { data } = await axios.get(
     `https://dapi.kakao.com/v3/search/book?query=${query}`,
     { headers: { Authorization: `KakaoAK ${KAKAO_API_KEY}` } }

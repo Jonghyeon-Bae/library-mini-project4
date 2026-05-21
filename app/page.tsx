@@ -1,115 +1,112 @@
 'use client';
 
-// 가짜 데이터(Dummy)로 화면부터 그려봅니다.
-const dummyBooks = [
-  { id: 1, title: '해리포터와 마법사의 돌', author: 'J.K. 롤링', publisher: '문학수첩', isAvailable: true, thumbnail: 'https://via.placeholder.com/150' },
-  { id: 2, title: '반지의 제왕', author: 'J.R.R. 톨킨', publisher: '황금가지', isAvailable: false, thumbnail: 'https://via.placeholder.com/150' }
-];
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { pb } from './lib/pocketbase'
+import AddBookModal from './components/AddBookModal';
+import DashboardChart from './components/DashboardChart';
+
+export interface bookProps{
+  id:string
+  title?:string
+  author?:string
+  publisher?:string
+  thumbnail?:string
+  isAvailable?:boolean
+}
 
 export default function Home() {
+  const queryClient = useQueryClient();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // 1. 도서 목록 조회 (Read)
+  const { data: books, isPending } : { data: bookProps[] | undefined; isPending: boolean } = useQuery({
+    queryKey: ['books'],
+    queryFn: () => pb.collection('books').getFullList({ sort: '-created' }),
+  });
+
+  // 2. 도서 삭제 (Delete)
+  const deleteMutation = useMutation({
+    mutationFn: (id:string) => pb.collection('books').delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['books'] }),
+  });
+
+  // 3. 대출 상태 토글 (Update)
+  const toggleMutation = useMutation({
+    mutationFn: ({ id, isAvailable } : {id:string,isAvailable?:boolean}) => pb.collection('books').update(id, { isAvailable: !isAvailable }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['books'] }),
+  });
+
   return (
     <main className="max-w-5xl mx-auto p-8">
+      {/* 헤더 영역 */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">📚 도서 관리 시스템</h1>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-          + 새 도서 추가
+        <div>
+          <h1 className="text-3xl font-extrabold text-gray-900">📚 오승헌의 RedButton 도서관</h1>
+          <p className="text-gray-500 mt-2">그의 취향을 찾아서....</p>
+        </div>
+        <button 
+          onClick={() => setIsModalOpen(true)} 
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-sm"
+        >
+          + 새 도서 등록
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {dummyBooks.map((book) => (
-          <div key={book.id} className="bg-white rounded-lg shadow overflow-hidden relative">
-            <button className="absolute top-2 right-2 bg-red-500 text-white w-6 h-6 rounded-full text-xs">×</button>
-            <img src={book.thumbnail} alt={book.title} className="w-full h-48 object-cover" />
+      {/* 대시보드 차트 (데이터가 있을 때만 렌더링) */}
+      <DashboardChart books={books} />
+
+      {/* 로딩 상태 */}
+      {isPending && <p className="text-center py-10 text-gray-500 text-lg">책장을 불러오는 중입니다... 🔄</p>}
+
+      {/* 도서 목록 그리드 */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {books?.map((book) => (
+          <div key={book.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative hover:shadow-md transition-shadow">
+            
+            {/* 삭제 버튼 */}
+            <button 
+              onClick={() => { if(confirm('정말 삭제하시겠습니까?')) deleteMutation.mutate(book.id) }}
+              className="absolute top-3 right-3 bg-red-500 text-white w-7 h-7 rounded-full flex justify-center items-center text-sm opacity-80 hover:opacity-100 z-10 transition-opacity shadow-sm"
+            >
+              ×
+            </button>
+
+            {/* 썸네일 */}
+            {/* <Image src={book.thumbnail || "https://via.placeholder.com/150"} 
+              alt={book.title} 
+              className="w-full h-56 object-cover bg-gray-100" 
+            >
+
+            </Image> */}
+            <img 
+              src={book.thumbnail || "https://via.placeholder.com/150"} 
+              alt={book.title} 
+              className="w-full h-56 object-cover bg-gray-100" 
+            />
+            
             <div className="p-4">
-              <h2 className="font-bold text-lg truncate">{book.title}</h2>
-              <p className="text-sm text-gray-500 truncate">{book.author} | {book.publisher}</p>
-              <button className={`mt-4 w-full py-2 rounded text-sm font-bold ${
-                book.isAvailable ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-              }`}>
+              <h3 className="font-bold text-lg text-gray-800 line-clamp-1">{book.title}</h3>
+              <p className="text-sm text-gray-500 mt-1 line-clamp-1">{book.author} | {book.publisher}</p>
+              
+              {/* 대출 토글 버튼 */}
+              <button 
+                onClick={() => toggleMutation.mutate({ id: book.id, isAvailable: book.isAvailable })}
+                className={`mt-4 w-full py-2 rounded-lg font-bold text-sm transition-colors ${
+                  book.isAvailable 
+                    ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                    : 'bg-red-100 text-red-700 hover:bg-red-200'
+                }`}
+              >
                 {book.isAvailable ? '대출 가능' : '대출 중'}
               </button>
             </div>
           </div>
         ))}
       </div>
+
+      {/* 등록 모달 */}
+      <AddBookModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </main>
   );
 }
-
-
-
-
-
-
-
-
-
-//  Step 3 Tanstack Query Imported.
-// 'use client';
-
-// import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-// import { pb } from '../lib/pocketbase';
-// import { useState } from 'react';
-// import AddBookModal from '../components/AddBookModal';
-// import DashboardChart from '../components/DashboardChart';
-
-// export default function Home() {
-//   // 더미 데이터 삭제! 마법의 심부름꾼(useQuery) 투입
-//   const queryClient = useQueryClient();
-//   const [isModalOpen, setIsModalOpen] = useState(false); // 상태 추가
-//   const { data: books, isPending } = useQuery({
-//     queryKey: ['books'],
-//     queryFn: () => pb.collection('books').getFullList({ sort: '-created' }),
-//   });
-//   // 대출 상태 변경 Mutation 추가
-  // const toggleMutation = useMutation({
-  //   mutationFn: ({ id, isAvailable }) => pb.collection('books').update(id, { isAvailable: !isAvailable }),
-  //   onSuccess: () => queryClient.invalidateQueries({ queryKey: ['books'] }),
-  // });
-
-  // // 삭제 Mutation 추가
-  // const deleteMutation = useMutation({
-  //   mutationFn: (id) => pb.collection('books').delete(id),
-  //   onSuccess: () => queryClient.invalidateQueries({ queryKey: ['books'] }),
-  // });
-
-//   return (
-//     <main className="max-w-5xl mx-auto p-8">
-//       <div className="flex justify-between items-center mb-8">
-//         <h1 className="text-3xl font-bold">📚 도서 관리 시스템</h1>
-//         <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-//           + 새 도서 추가
-//         </button>
-{/* <button onClick={() => { if(confirm('삭제하시겠습니까?')) deleteMutation.mutate(book.id) }}
-            className="absolute top-2 right-2 bg-red-500 text-white w-6 h-6 rounded-full text-xs">
-            ×
-          </button> */}
-//       </div>
-
-//       {/* 로딩 처리 추가 */}
-//       {isPending && <p className="text-center py-10 text-gray-500">책장을 불러오는 중... 🔄</p>}
-{/*      <DashboardChart books={books} /> */}
-//       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-//         {books?.map((book) => (
-//           // (카드 UI 내용은 Step 1과 완전히 동일하게 유지)
-//           <div key={book.id} className="bg-white rounded-lg shadow overflow-hidden relative">
-//             <button className="absolute top-2 right-2 bg-red-500 text-white w-6 h-6 rounded-full text-xs">×</button>
-//             <img src={book.thumbnail || "https://via.placeholder.com/150"} alt={book.title} className="w-full h-48 object-cover" />
-//             <div className="p-4">
-//               <h2 className="font-bold text-lg truncate">{book.title}</h2>
-//               <p className="text-sm text-gray-500 truncate">{book.author} | {book.publisher}</p>
-//               <button className={`mt-4 w-full py-2 rounded text-sm font-bold ${
-//                 book.isAvailable ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-//               }`}
-// onClick={() => toggleMutation.mutate({ id: book.id, isAvailable: book.isAvailable })}>
-//                 {book.isAvailable ? '대출 가능' : '대출 중'}
-//               </button>
-//             </div>
-//           </div>
-//         ))}
-//       </div>
-{/* <AddBookModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} /> */}
-//     </main>
-//   );
-// }
