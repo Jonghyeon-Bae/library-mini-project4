@@ -24,3 +24,23 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@keyframes shine {
+  0% { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+.animate-shine {
+  animation: shine 3s linear infinite;
+  background-size: 200% auto;
+}
+
+@keyframes rapid-blink {
+  0%, 100% { background-color: #ef4444; } /* Tailwind의 red-500 */
+  50% { background-color: #000000; }      /* 검은색 */
+}
+
+.animate-rapid-blink {
+  /* 0.2s 간격으로 무한 반복 */
+  animation: rapid-blink 0.2s ease-in-out infinite; 
+}

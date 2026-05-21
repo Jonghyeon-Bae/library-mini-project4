@@ -13,6 +13,7 @@ export interface bookProps{
   publisher?:string
   thumbnail?:string
   isAvailable?:boolean
+  bestbook?:boolean
 }
 
 export default function Home() {
@@ -42,14 +43,14 @@ export default function Home() {
       {/* 헤더 영역 */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-900">📚 오승헌의 RedButton 도서관</h1>
-          <p className="text-gray-500 mt-2">그의 취향을 찾아서....</p>
+          <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 animate-bounce">📚 오승헌의 직박구리<span className='text-red-300'>🔞</span></h1>
+          <p className="animate-shine font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-400 via-red-500 to-slate-400 animate-shine mt-2">그의 은밀한 취미생활....</p>
         </div>
         <button 
           onClick={() => setIsModalOpen(true)} 
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-sm"
+          className="cursor-pointer px-6 py-2 rounded-lg font-bold text-white shadow-lg animate-rapid-blink animate-rapid-blink"
         >
-          + 새 도서 등록
+          + 추가
         </button>
       </div>
 
@@ -60,29 +61,27 @@ export default function Home() {
       {isPending && <p className="text-center py-10 text-gray-500 text-lg">책장을 불러오는 중입니다... 🔄</p>}
 
       {/* 도서 목록 그리드 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 ">
         {books?.map((book) => (
           <div key={book.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative hover:shadow-md transition-shadow">
             
             {/* 삭제 버튼 */}
             <button 
               onClick={() => { if(confirm('정말 삭제하시겠습니까?')) deleteMutation.mutate(book.id) }}
-              className="absolute top-3 right-3 bg-red-500 text-white w-7 h-7 rounded-full flex justify-center items-center text-sm opacity-80 hover:opacity-100 z-10 transition-opacity shadow-sm"
+              className="absolute cursor-pointer hover:bg-black  top-3 right-3 bg-red-500 text-white w-7 h-7 rounded-full flex justify-center items-center text-sm opacity-80 hover:opacity-100 z-10 transition-opacity shadow-sm"
             >
               ×
             </button>
-
+            {/* 추천! */}
+            {book.bestbook ?
+            <span className='absolute top-3 left-3 bg-yellow-400 text-black px-2 py-1 rounded-md font-bold'>★강추!</span>
+          :<></>  
+          }
             {/* 썸네일 */}
-            {/* <Image src={book.thumbnail || "https://via.placeholder.com/150"} 
-              alt={book.title} 
-              className="w-full h-56 object-cover bg-gray-100" 
-            >
-
-            </Image> */}
             <img 
               src={book.thumbnail || "https://via.placeholder.com/150"} 
               alt={book.title} 
-              className="w-full h-56 object-cover bg-gray-100" 
+              className="w-full h-56 object-cover bg-gray-100 hover:scale-110 transition-transform duration-300" 
             />
             
             <div className="p-4">
@@ -92,7 +91,7 @@ export default function Home() {
               {/* 대출 토글 버튼 */}
               <button 
                 onClick={() => toggleMutation.mutate({ id: book.id, isAvailable: book.isAvailable })}
-                className={`mt-4 w-full py-2 rounded-lg font-bold text-sm transition-colors ${
+                className={`mt-4 w-full py-2 cursor-pointer rounded-lg font-bold text-sm transition-colors ${
                   book.isAvailable 
                     ? 'bg-green-100 text-green-700 hover:bg-green-200' 
                     : 'bg-red-100 text-red-700 hover:bg-red-200'

@@ -5,7 +5,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { pb } from '../lib/pocketbase';
 import { searchBookFromKakao } from '../lib/kakaoApi';
 import { Search, X } from 'lucide-react';
-import bookProps from '../page';
 
 interface AddBookModalProps{
   isOpen:boolean
@@ -20,6 +19,7 @@ interface NewBookProps{
   publisher?:string
   thumbnail?:string
   isAvailable?:boolean
+  bestbook?:boolean
 }
 
 export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
@@ -73,7 +73,7 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
               <button 
                 onClick={() => addMutation.mutate({
                   title: book.title, authors: book.authors?.join(', '),
-                  publisher: book.publisher, thumbnail: book.thumbnail, isAvailable: true,
+                  publisher: book.publisher, thumbnail: book.thumbnail, isAvailable: true, bestbook:false
                 })}
                 className="bg-gray-800 text-white px-3 py-1 rounded"
               >
