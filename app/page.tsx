@@ -19,8 +19,8 @@ export interface bookProps{
   id:string
   title?:string
   contents?:string /*kakao api와 동일 이름 사용  */
-  author?:string
-  publisher?:string
+  author?:string 
+  publisher?:string   // Stinrg or Undefined 
   thumbnail?:string
   isAvailable?:boolean
   bestbook?:boolean
@@ -217,7 +217,7 @@ export default function Home() {
       {/* 대시보드 차트 (전체 데이터 기준) */}
       {/* 수정_최승헌_4-2 대시보드 차트에 전체 도서 데이터(allBooks) 전달하도록 변경 */}
       <DashboardChart books={allBooks} />
-
+    
       {/* 로딩 상태 */}
       {isPending && <p className="text-center py-10 text-gray-500 text-lg">책장을 불러오는 중입니다... 🔄</p>}
 
