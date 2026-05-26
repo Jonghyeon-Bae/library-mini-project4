@@ -69,7 +69,7 @@ export default function Home() {
     mutationFn: ({ id, isAvailable } : {id:string,isAvailable?:boolean}) => pb.collection('books').update(id, { isAvailable: !isAvailable }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['books'] }),
   });
-
+//  tests
   return (
     <main className="max-w-5xl mx-auto p-8">
       {/* 헤더 영역 */}
