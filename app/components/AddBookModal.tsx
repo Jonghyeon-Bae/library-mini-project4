@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { pb } from '../lib/pocketbase';
 import { searchBookFromKakao } from '../lib/kakaoApi';
-import { Search, X } from 'lucide-react';
+import { Search, X, Clock } from 'lucide-react';
 
 interface AddBookModalProps{
   isOpen:boolean
@@ -27,6 +27,22 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
   const [keyword, setKeyword] = useState('');
   const [results, setResults] = useState([]);
 
+  // 현재 로그인한 유저 정보 가져오기
+  const currentUser = pb.authStore.model;
+
+  // 최근 검색어 5개 불러오기 (Read)
+  const { data: historyData } = useQuery({
+    queryKey: ['searchHistory', currentUser?.id],
+    queryFn: () => pb.collection('search_history').getList(1, 5, {
+      filter: `user = "${currentUser?.id}"`,
+      sort: '-created', // 최신순 정렬
+    }),
+    enabled: !!currentUser?.id, // 유저 ID가 있을 때만 쿼리 실행
+  });
+
+  // 불러온 데이터에서 items 배열만 추출 (없으면 빈 배열)
+  const recentSearches = historyData?.items || [];
+
   // DB에 저장하는 Mutation
   const addMutation = useMutation({
     mutationFn: (newBook: NewBookProps) => pb.collection('books').create(newBook),
@@ -37,10 +53,28 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
     },
   });
 
-  const handleSearch = async () => {
-    if (!keyword) return alert('검색어를 입력하세요!');
-    const data = await searchBookFromKakao(keyword);
+  // 2. 검색 실행 함수 (태그 클릭 시 즉시 검색을 위해 매개변수 분리)
+  const handleSearch = async (targetKeyword: string) => {
+    if (!targetKeyword.trim()) return alert('검색어를 입력하세요!');
+    
+    // 카카오 API 검색 결과 세팅
+    const data = await searchBookFromKakao(targetKeyword);
     setResults(data);
+
+    // 검색 기록 저장 (Create)
+    if (currentUser?.id) {
+      try {
+        await pb.collection('search_history').create({
+          user: currentUser.id,
+          keyword: targetKeyword,
+        });
+        
+        // 기록 저장 성공 시 최근 검색어 쿼리 무효화 -> 화면 자동 갱신
+        queryClient.invalidateQueries({ queryKey: ['searchHistory', currentUser?.id] });
+      } catch (error) {
+        console.error('검색 기록 저장 실패:', error);
+      }
+    }
   };
 
   if (!isOpen) return null;
@@ -57,10 +91,33 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
           <input 
             value={keyword} onChange={(e) => setKeyword(e.target.value)}
             className="flex-1 border p-2 rounded" placeholder="책 제목을 검색하세요"
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch(keyword)}
           />
-          <button onClick={handleSearch} className="bg-blue-600 text-white px-4 rounded"><Search size={18}/></button>
+          <button onClick={() => handleSearch(keyword)} className="bg-blue-600 text-white px-4 rounded"><Search size={18}/></button>
         </div>
+
+        {recentSearches.length > 0 && (
+          <div className="px-4 py-3 bg-gray-50 border-b flex items-center gap-3 overflow-x-auto">
+            <div className="flex items-center text-sm font-medium text-gray-500 shrink-0 gap-1">
+              <Clock size={14} />
+              <span>최근 검색</span>
+            </div>
+            <div className="flex gap-2">
+              {recentSearches.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setKeyword(item.keyword);    // 인풋창 값 변경
+                    handleSearch(item.keyword); // 즉시 검색 실행
+                  }}
+                  className="px-3 py-1 bg-white border border-gray-200 text-sm rounded-full text-gray-600 hover:border-blue-500 hover:text-blue-600 transition whitespace-nowrap shadow-sm"
+                >
+                  {item.keyword}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {results.map((book: any, idx) => (
