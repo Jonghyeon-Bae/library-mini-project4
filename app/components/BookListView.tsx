@@ -2,15 +2,17 @@
 import { bookProps } from '../page';
 import LikeButton from '../components/Likebutton';
 
+import { useRouter } from 'next/navigation';
+
 export default function BookListView({ books,
 totalPages,
 page,
 visiblePages,
 sortOption,
-setPressSetSelectedBook,
 setSortOption,
 setPage,
-deleteMutation }: { books: bookProps[]; totalPages: number; page: number; visiblePages: number[]; sortOption: string; setPressSetSelectedBook: (book: bookProps) => void; setSortOption: (option: string) => void; setPage: (pageNum: number) => void; deleteMutation: any }) {
+deleteMutation }: { books: bookProps[]; totalPages: number; page: number; visiblePages: number[]; sortOption: string; setSortOption: (option: string) => void; setPage: (pageNum: number) => void; deleteMutation: any }) {
+  const router = useRouter();
 
 return(
         <>
@@ -63,7 +65,7 @@ return(
             {books?.map((book) => (
               <div
                 key={book.id}
-                onClick={() => setPressSetSelectedBook(book)}
+                onClick={() => router.push(`/book/${book.id}`)}
                 className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative hover:shadow-md transition-shadow cursor-pointer"
               >
             {/* 수정_최승헌_3-2 완료 */}
@@ -124,7 +126,7 @@ return(
               </button>
 
               <button
-                onClick={() => setPage((prev:number) => Math.max(prev - 1, 1))}
+                onClick={() => setPage(Math.max(page - 1, 1))}
                 disabled={page === 1}
                 className="px-3 py-2 rounded-lg border text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100"
               >
@@ -146,7 +148,7 @@ return(
               ))}
 
               <button
-                onClick={() => setPage((prev: number) => Math.min(prev + 1, totalPages))}
+                onClick={() => setPage(Math.min(page + 1, totalPages))}
                 disabled={page === totalPages}
                 className="px-3 py-2 rounded-lg border text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100"
               >

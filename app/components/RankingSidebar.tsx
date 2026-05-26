@@ -3,14 +3,15 @@
 import { memo, useState } from 'react';
 import { bookProps } from '../page';
 import { Heart, Trophy, X, Award } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface RankingSidebarProps {
   books: bookProps[];
-  onBookSelect?: (book: bookProps) => void;
 }
 
-const RankingSidebar = memo(function RankingSidebar({ books, onBookSelect }: RankingSidebarProps) {
+const RankingSidebar = memo(function RankingSidebar({ books }: RankingSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
 
   if (!books || books.length === 0) return null;
 
@@ -24,9 +25,7 @@ const RankingSidebar = memo(function RankingSidebar({ books, onBookSelect }: Ran
     .slice(0, 10);
 
   const handleBookClick = (book: bookProps) => {
-    if (onBookSelect) {
-      onBookSelect(book);
-    }
+    router.push(`/book/${book.id}`);
     setIsOpen(false); // 모바일 모달 열려있으면 닫기
   };
 

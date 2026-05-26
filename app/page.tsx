@@ -10,7 +10,6 @@ import RegisterModal from './register/RegisterModal';
 import { LogIn, UserPlus, LogOut, User } from 'lucide-react';
 import RankingSidebar from './components/RankingSidebar';
 import Link from 'next/link';
-import BookDetailView from './components/BookDetailView';
 import BookListView from './components/BookListView';
 
 
@@ -42,10 +41,6 @@ export default function Home() {
   const [isHydrated, setIsHydrated] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
-
-  // 추가_최승헌_3-1 선택된 도서 정보 추가
-  const [selectedBook, setSelectedBook] = useState<bookProps | null>(null);
-  // 추가_최승헌_3-1 완료
 
   // 수정_최승헌_1-1 페이지네이션 상태 추가
   const [page, setPage] = useState(1);
@@ -131,21 +126,8 @@ export default function Home() {
       pb.collection('books').update(id, { isAvailable: !isAvailable }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['books'] });
-      // 추가_최승헌_4-4 도서 대출 시 대시보드용 쿼리 갱신 추가
+      queryClient.invalidateQueries({ queryKey: ['myBooks'] });
       queryClient.invalidateQueries({ queryKey: ['books-dashboard'] });
-        // 추가_최승헌_4-4 완료
-
-      // 상세 페이지에서 대출 상태 변경 시 selectedBook도 즉시 반영
-      setSelectedBook((prev) => {
-        if (!prev || prev.id !== variables.id) {
-          return prev;
-        }
-
-        return {
-          ...prev,
-          isAvailable: !variables.isAvailable,
-        };
-      });
     },
   });
   // 수정_최승헌_5-3 완료
@@ -221,28 +203,17 @@ export default function Home() {
       {/* 로딩 상태 */}
       {isPending && <p className="text-center py-10 text-gray-500 text-lg">책장을 불러오는 중입니다... 🔄</p>}
 
-      {/* 추가_최승헌_5-1 도서 상세 정보 페이지 추가 */}
-      {selectedBook ? (
-        <BookDetailView 
-          selectedBook={selectedBook}
-          onBack={() => setSelectedBook(null)}
-          toggleMutation={toggleMutation}
-          deleteMutation={deleteMutation}
-          onDelete={() => setSelectedBook(null)}
-        />
-      ) : (
-        <BookListView
-          books={books}
-          totalPages={totalPages}
-          page={page}
-          visiblePages={visiblePages}
-          sortOption={sortOption}
-          setPressSetSelectedBook={setSelectedBook}
-          setSortOption={setSortOption}
-          setPage={setPage}
-          deleteMutation={deleteMutation}
-        />
-      )}
+      {/* 도서 목록 그리드 */}
+      <BookListView
+        books={books}
+        totalPages={totalPages}
+        page={page}
+        visiblePages={visiblePages}
+        sortOption={sortOption}
+        setSortOption={setSortOption}
+        setPage={setPage}
+        deleteMutation={deleteMutation}
+      />
 
       {/* 등록 모달 */}
       <AddBookModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
@@ -268,7 +239,7 @@ export default function Home() {
       />
 
       {/* 좌측 플로팅 랭킹 사이드바 */}
-      <RankingSidebar books={books as bookProps[]} onBookSelect={setSelectedBook} />
+      <RankingSidebar books={books as bookProps[]} />
     </main>
   );
 }

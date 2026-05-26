@@ -5,7 +5,7 @@ import { pb } from '../lib/pocketbase';
 import { X, Mail, Lock, User, UserPlus, Loader2 } from 'lucide-react';
 
 interface RegisterModalProps {
-  isOpen: boolean;
+  isOpen: boolean;  
   onClose: () => void;
   onLoginClick: () => void;
 }

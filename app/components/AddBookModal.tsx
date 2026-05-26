@@ -83,7 +83,7 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
 
     
 
-  const handleAdd =async (book: NewBookProps) => {
+  const handleAdd =async (book: any) => {
     const aladin_data= await searchBookFromAladin(book.title??"") 
     console.log(book.title )
 
