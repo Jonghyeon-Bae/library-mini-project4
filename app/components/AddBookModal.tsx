@@ -15,7 +15,7 @@ interface AddBookModalProps{
 interface NewBookProps{
   id?:string
   title?:string
-  authors?:any
+  authors?:string
   publisher?:string
   thumbnail?:string
   isAvailable?:boolean
