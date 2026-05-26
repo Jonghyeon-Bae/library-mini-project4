@@ -7,8 +7,9 @@ import AddBookModal from './components/AddBookModal';
 import DashboardChart from './components/DashboardChart';
 import LoginModal from './login/LoginModal';
 import RegisterModal from './register/RegisterModal';
-import { LogIn, UserPlus, LogOut } from 'lucide-react';
+import { LogIn, UserPlus, LogOut, User } from 'lucide-react';
 import LikeButton from './components/Likebutton';
+import Link from 'next/link';
 
 export interface bookProps{
   id:string
@@ -86,6 +87,13 @@ export default function Home() {
               <span className="text-sm font-semibold text-slate-700 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200/50 flex items-center">
                 {user.name || user.email}
               </span>
+              <Link
+                href="/me"
+                className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-lg text-sm shadow-md transition-colors"
+              >
+                <User size={16} />
+                마이페이지
+              </Link>
               <button
                 onClick={handleLogout}
                 className="cursor-pointer flex items-center gap-1.5 bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2 rounded-lg text-sm shadow-md transition-colors"
