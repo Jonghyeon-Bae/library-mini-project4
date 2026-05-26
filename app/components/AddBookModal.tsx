@@ -83,32 +83,32 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
 
     
 
-  const handleAdd =async (book: NewBookProps) => {
-    const aladin_data= await searchBookFromAladin(book.title??"") 
-    console.log(book.title )
+//   const handleAdd =async (book: NewBookProps) => {
+//     const aladin_data= await searchBookFromAladin(book.title??"") 
+//     console.log(book.title )
 
-    //const obj = JSON.parse(aladin_data);
-    const clean = aladin_data.replace(/;$/, "");    //옛날 XML 방식이라 JSON 으로 가져오면 오류 
-    const obj = JSON.parse(clean);
-    console.log(obj.item[0].categoryName);
+//     //const obj = JSON.parse(aladin_data);
+//     const clean = aladin_data.replace(/;$/, "");    //옛날 XML 방식이라 JSON 으로 가져오면 오류 
+//     const obj = JSON.parse(clean);
+//     console.log(obj);
 
     
 
-    addMutation.mutate({
-      title: book.title,
-      authors: book.authors?.join(", "),
-      publisher: book.publisher,
-      thumbnail: book.thumbnail,
-      isAvailable: true,
-      bestbook: false,
-      category: obj.item[0].categoryName,
-      sales: obj.item[0].customerReviewRank,
-      });
+//     addMutation.mutate({
+//       title: book.title,
+//       authors: book.authors?.join(", "),
+//       publisher: book.publisher,
+//       thumbnail: book.thumbnail,
+//       isAvailable: true,
+//       bestbook: false,
+//       category: obj.item[0].categoryName,
+//       sales: obj.item[0].customerReviewRank,
+//       });
 
-  // 👉 추가 작업
+//   // 👉 추가 작업
       
     
-};
+// };
 
 
   if (!isOpen) return null;
@@ -162,8 +162,8 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
                 <p className="text-sm text-gray-500">{book.authors?.join(', ')}</p>
               </div>
               <button 
-                 onClick={() => handleAdd(book)}
-                  /*
+                //  onClick={() => handleAdd(book)}
+                  
                   onClick={() => {
                   const currentUserId = pb.authStore.model?.id;
                   if (!currentUserId) {
@@ -174,7 +174,7 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
                     title: book.title, authors: book.authors?.join(', '),
                     publisher: book.publisher, thumbnail: book.thumbnail, isAvailable: true, bestbook:false, user_id: currentUserId
                   });
-                }}*/
+                }}
                 className="bg-gray-800 text-white px-3 py-1 rounded"
               >
                 등록
