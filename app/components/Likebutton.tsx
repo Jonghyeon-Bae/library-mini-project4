@@ -1,9 +1,10 @@
 'use client';
 
+import { memo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { pb } from '../lib/pocketbase';
 
-export default function LikeButton({ bookId, initialLikeCount }: { bookId: string; initialLikeCount: number }) {
+const LikeButton = memo(function LikeButton({ bookId, initialLikeCount }: { bookId: string; initialLikeCount: number }) {
   const queryClient = useQueryClient();
   const currentUser = pb.authStore.model;
 
@@ -103,4 +104,7 @@ export default function LikeButton({ bookId, initialLikeCount }: { bookId: strin
       {isLiked ? '♥' : '♡'} {currentLikeCount} 
     </button>
   );
-}
+});
+
+// 최적화_React.memo 적용: bookId와 initialLikeCount props가 변경될 때만 리렌더링
+export default LikeButton;

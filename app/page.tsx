@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { pb } from './lib/pocketbase'
 import AddBookModal from './components/AddBookModal';
@@ -65,10 +65,10 @@ export default function Home() {
     };
   }, [queryClient]);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     pb.authStore.clear();
     alert('로그아웃되었습니다.');
-  };
+  }, []);
 
   // 1. 도서 목록 조회 (Read)
   // 수정_최승헌_1-1 페이지네이션 추가된 도서 목록 조회
@@ -80,7 +80,9 @@ export default function Home() {
       }),
   });
 
-  const books = (data?.items ?? []) as unknown as bookProps[];
+  const books = useMemo(() => {
+    return (data?.items ?? []) as unknown as bookProps[];
+  }, [data?.items]);
   const totalPages = data?.totalPages ?? 1;
 
   // 추가_최승헌_4-1 대시보드용 전체 도서 데이터 조회
@@ -90,10 +92,13 @@ export default function Home() {
     queryFn: () => pb.collection('books').getFullList(),
   });
 
-  const allBooks = (dashboardBooks ?? []) as unknown as bookProps[];
+  // 최적화_useMemo로 allBooks 메모이제이션: DashboardChart와 RankingSidebar의 memo 효과 극대화
+  const allBooks = useMemo(() => {
+    return (dashboardBooks ?? []) as unknown as bookProps[];
+  }, [dashboardBooks]);
 
-  // 페이지네이션에서 보여줄 페이지 번호 계산 함수
-  const getVisiblePages = () => {
+  // 최적화_useMemo를 이용한 페이지네이션 번호 계산 메모이제이션
+  const visiblePages = useMemo(() => {
     const pages: number[] = [];
 
     // 현재 페이지 중심 앞뒤로 3페이지씩 보여주기
@@ -105,9 +110,7 @@ export default function Home() {
     }
 
     return pages;
-  };
-
-  const visiblePages = getVisiblePages();
+  }, [page, totalPages]);
 
   // 2. 도서 삭제 (Delete)
   const deleteMutation = useMutation({

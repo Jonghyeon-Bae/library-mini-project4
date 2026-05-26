@@ -1,9 +1,10 @@
 'use client';
+import { memo } from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 import { bookProps } from '../page';
 
 
-export default function DashboardChart({ books }: { books: bookProps[] }) {
+const DashboardChart = memo(function DashboardChart({ books }: { books: bookProps[] }) {
   if (!books || books.length === 0) return null;
 
   // 데이터 가공하기
@@ -33,4 +34,7 @@ export default function DashboardChart({ books }: { books: bookProps[] }) {
       </PieChart>
     </div>
   );
-}
+});
+
+// 최적화_React.memo 적용: books 배열이 참조적으로 변경될 때만 리렌더링
+export default DashboardChart

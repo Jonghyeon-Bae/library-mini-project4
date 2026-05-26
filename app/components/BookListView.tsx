@@ -24,7 +24,7 @@ return(
                 setSortOption('-created');
                 setPage(1);
               }}
-              className={`px-3 py-2 rounded-lg border text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 ${
+              className={`px-3 py-2 cursor-pointer rounded-lg border text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 ${
                 sortOption === '-created' ? 'text-blue-500 border-blue-200 bg-blue-50' : 'text-gray-500'
               }`}
             >
@@ -36,7 +36,7 @@ return(
                 setSortOption('created');
                 setPage(1);
               }}
-              className={`px-3 py-2 rounded-lg border text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 ${
+              className={`px-3 py-2 cursor-pointer rounded-lg border text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 ${
                 sortOption === 'created' ? 'text-violet-500 border-violet-200 bg-violet-50' : 'text-gray-500'
               }`}
             >
@@ -48,7 +48,7 @@ return(
                 setSortOption('title');
                 setPage(1);
               }}
-              className={`px-3 py-2 rounded-lg border text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 ${
+              className={`px-3 py-2 cursor-pointer rounded-lg border text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 ${
                 sortOption === 'title' ? 'text-cyan-500 border-cyan-200 bg-cyan-50' : 'text-gray-500'
               }`}
             >

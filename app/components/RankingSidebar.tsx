@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { bookProps } from '../page';
 import { Heart, Trophy, X, Award } from 'lucide-react';
 
@@ -9,7 +9,7 @@ interface RankingSidebarProps {
   onBookSelect?: (book: bookProps) => void;
 }
 
-export default function RankingSidebar({ books, onBookSelect }: RankingSidebarProps) {
+const RankingSidebar = memo(function RankingSidebar({ books, onBookSelect }: RankingSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   if (!books || books.length === 0) return null;
@@ -132,4 +132,4 @@ export default function RankingSidebar({ books, onBookSelect }: RankingSidebarPr
       )}
     </>
   );
-}
+}); export default RankingSidebar;
