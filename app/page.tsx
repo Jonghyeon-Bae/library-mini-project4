@@ -55,7 +55,7 @@ export default function Home() {
   return (
     <main className="max-w-5xl mx-auto p-8">
       {/* 헤더 영역 */}
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 pb-6 border-b border-gray-100">
         <div>
           <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 animate-bounce">📚 오승헌의 직박구리<span className='text-red-300'>🔞</span></h1>
           <p className="animate-shine font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-400 via-red-500 to-slate-400  mt-2">그의 은밀한 취미생활....</p>
@@ -163,6 +163,20 @@ export default function Home() {
 
       {/* 등록 모달 */}
       <AddBookModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+
+      {/* 로그인 모달 */}
+      <LoginModal 
+        isOpen={isLoginOpen} 
+        onClose={() => setIsLoginOpen(false)} 
+        onRegisterClick={() => setIsRegisterOpen(true)} 
+      />
+
+      {/* 회원가입 모달 */}
+      <RegisterModal 
+        isOpen={isRegisterOpen} 
+        onClose={() => setIsRegisterOpen(false)} 
+        onLoginClick={() => setIsLoginOpen(true)} 
+      />
     </main>
   );
 }
