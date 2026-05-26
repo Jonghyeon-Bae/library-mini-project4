@@ -63,7 +63,7 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {results.map((book:NewBookProps , idx) => (
+          {results.map((book: any, idx) => (
             <div key={idx} className="flex gap-4 items-center border-b pb-4">
               <img src={book.thumbnail || "https://via.placeholder.com/50"} alt="표지" className="w-12 object-cover" />
               <div className="flex-1">
