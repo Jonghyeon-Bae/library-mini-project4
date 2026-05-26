@@ -9,12 +9,9 @@ import LoginModal from './login/LoginModal';
 import RegisterModal from './register/RegisterModal';
 import { LogIn, UserPlus, LogOut, User } from 'lucide-react';
 import LikeButton from './components/Likebutton';
-<<<<<<< HEAD
 import RankingSidebar from './components/RankingSidebar';
-=======
 import Link from 'next/link';
 import PopularBooksSidebar from './components/PopularBooksSidebar';
->>>>>>> 09b09aa16466e60413209607c0057b25982a76f9
 
 // 수정_최승헌_5-2 bookProps 업데이트 (ai_review, user_id, created, updated 필드 추가)
 export interface bookProps{
@@ -490,26 +487,6 @@ export default function Home() {
                   </div>
                   {/* 추가_최승헌_3-3 완료 */}
 
-                  {/* 대출 토글 버튼 */}
-                  <button 
-                    onClick={(e) => {
-                      // 추가_최승헌_3-3 버튼 이벤트 전파 방지
-                      e.stopPropagation();
-                      // 추가_최승헌_3-3 완료
-
-                      toggleMutation.mutate({
-                        id: book.id,
-                        isAvailable: book.isAvailable,
-                      });
-                    }}
-                    className={`mt-4 w-full py-2 cursor-pointer rounded-lg font-bold text-sm transition-colors ${
-                      book.isAvailable 
-                        ? 'bg-green-100 text-green-700 hover:bg-green-200' 
-                        : 'bg-red-100 text-red-700 hover:bg-red-200'
-                    }`}
-                  >
-                    {book.isAvailable ? '대출 가능' : '대출 중'}
-                  </button>
                 </div>
               </div>
             ))}
@@ -591,13 +568,10 @@ export default function Home() {
           setIsLoginOpen(true);
         }}
       />
-<<<<<<< HEAD
     </div>
-=======
 
       {/* 우측 플로팅 인기 도서 사이드바 */}
       <PopularBooksSidebar />
->>>>>>> 09b09aa16466e60413209607c0057b25982a76f9
     </main>
   );
 }

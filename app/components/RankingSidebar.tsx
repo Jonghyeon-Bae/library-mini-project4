@@ -1,38 +1,20 @@
 'use client';
-import { useQuery } from '@tanstack/react-query';
-import { pb } from '../lib/pocketbase';
+// useQuery, pb 등 불필요한 import는 모두 제거했습니다.
 import { bookProps } from '../page';
 
 export default function RankingSidebar({ books }: { books: bookProps[] }) {
   if (!books || books.length === 0) return null;
 
-  // 모든 책의 좋아요 개수 조회
-  const { data: likeCounts = {} } = useQuery({
-    queryKey: ['allLikeCounts', books.map(b => b.id).join(',')],
-    queryFn: async () => {
-      const counts: Record<string, number> = {};
-      for (const book of books) {
-        try {
-          const records = await pb.collection('likes').getFullList({
-            filter: `book="${book.id}"`,
-          });
-          counts[book.id] = records.length;
-        } catch (error) {
-          counts[book.id] = 0;
-        }
-      }
-      return counts;
-    },
-    staleTime: 0,
-  });
-
-  // 좋아요 개수 기반 정렬
-  const ranked = [...(books || [])]
+  // 1. 이미 books 배열 안에 있는 like_count를 활용하여 정렬만 수행 (O(N log N))
+  const ranked = [...books]
+    // 방어 로직: like_count 필드가 없거나 undefined일 경우 0으로 처리
     .map(book => ({
       ...book,
-      likeCount: likeCounts[book.id] || 0
+      likeCount: book.like_count || 0 
     }))
+    // 좋아요가 많은 순(내림차순) 정렬
     .sort((a, b) => b.likeCount - a.likeCount)
+    // 상위 10개 추출
     .slice(0, 10);
 
   return (
@@ -69,7 +51,8 @@ export default function RankingSidebar({ books }: { books: bookProps[] }) {
             {/* 좋아요 개수 */}
             <div className="flex-shrink-0">
               <span className="inline-block px-3 py-1 bg-pink-100 text-pink-600 rounded-full text-sm font-bold">
-                {ranked[idx].likeCount}
+                {/* 💡 기존 ranked[idx].likeCount 대신 깔끔하게 book.likeCount 사용 */}
+                {book.likeCount} 
               </span>
             </div>
           </div>
