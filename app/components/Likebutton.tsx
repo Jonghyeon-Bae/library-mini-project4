@@ -35,6 +35,7 @@ export default function LikeButton({ bookId, initialLikeCount }: { bookId: strin
         return initialLikeCount;
       }
     },
+    staleTime: 0,
   });
 
   const isLiked = !!likeRecord;
@@ -59,15 +60,29 @@ export default function LikeButton({ bookId, initialLikeCount }: { bookId: strin
         });
       }
     },
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ['bookLikes', bookId] });
+      const previousCount = queryClient.getQueryData(['bookLikes', bookId]);
+
+      queryClient.setQueryData(['bookLikes', bookId], (old: number | undefined) => {
+        const current = old ?? initialLikeCount;
+        return isLiked ? current - 1 : current + 1;
+      });
+
+      return { previousCount };
+    },
     onSuccess: (data) => {
       console.log('좋아요 성공!', data);
       queryClient.invalidateQueries({ queryKey: ['likes', bookId, currentUser?.id] });
       queryClient.invalidateQueries({ queryKey: ['bookLikes', bookId] });
-      queryClient.invalidateQueries({ queryKey: ['allLikeCounts'] }); // ✅ 추가
+      queryClient.invalidateQueries({ queryKey: ['allLikeCounts'] });
       queryClient.invalidateQueries({ queryKey: ['books'] });
     },
-    onError: (error: any) => {
+    onError: (error: any, variables, context: any) => {
       console.error('좋아요 에러:', error?.message || error);
+      if (context?.previousCount !== undefined) {
+        queryClient.setQueryData(['bookLikes', bookId], context.previousCount);
+      }
     },
   });
 

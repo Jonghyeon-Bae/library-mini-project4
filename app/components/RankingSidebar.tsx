@@ -8,7 +8,7 @@ export default function RankingSidebar({ books }: { books: bookProps[] }) {
 
   // 모든 책의 좋아요 개수 조회
   const { data: likeCounts = {} } = useQuery({
-    queryKey: ['allLikeCounts'],
+    queryKey: ['allLikeCounts', books.map(b => b.id).join(',')],
     queryFn: async () => {
       const counts: Record<string, number> = {};
       for (const book of books) {
@@ -23,7 +23,7 @@ export default function RankingSidebar({ books }: { books: bookProps[] }) {
       }
       return counts;
     },
-    staleTime: 0, // ✅ 항상 fresh 상태로 유지
+    staleTime: 0,
   });
 
   // 좋아요 개수 기반 정렬

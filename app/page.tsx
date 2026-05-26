@@ -40,12 +40,13 @@ export default function Home() {
 
     const unsubscribe = pb.authStore.onChange((token, model) => {
       setUser(model);
+      queryClient.invalidateQueries({ queryKey: ['allLikeCounts'] });
     });
 
     return () => {
       unsubscribe();
     };
-  }, []);
+  }, [queryClient]);
 
   const handleLogout = () => {
     pb.authStore.clear();
@@ -205,6 +206,26 @@ export default function Home() {
 
       {/* 등록 모달 */}
       <AddBookModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+
+      {/* 로그인 모달 */}
+      <LoginModal
+        isOpen={isLoginOpen}
+        onClose={() => setIsLoginOpen(false)}
+        onRegisterClick={() => {
+          setIsLoginOpen(false);
+          setIsRegisterOpen(true);
+        }}
+      />
+
+      {/* 회원가입 모달 */}
+      <RegisterModal
+        isOpen={isRegisterOpen}
+        onClose={() => setIsRegisterOpen(false)}
+        onLoginClick={() => {
+          setIsRegisterOpen(false);
+          setIsLoginOpen(true);
+        }}
+      />
     </div>
     </main>
   );
