@@ -7,6 +7,8 @@ import { pb } from './lib/pocketbase'
 import AddBookModal from './components/AddBookModal';
 import DashboardChart from './components/DashboardChart';
 import LikeButton from './components/Likebutton';
+import LoginModal from './login/LoginModal';
+import RegisterModal from './register/RegisterModal';
 
 export interface bookProps{
   id:string
@@ -24,6 +26,8 @@ export default function Home() {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sortOption, setSortOption] = useState<string>('-created');
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const router = useRouter();
   const currentUser = pb.authStore.model; // 로그인 상태 확인
 
