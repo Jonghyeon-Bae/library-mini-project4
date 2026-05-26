@@ -22,19 +22,28 @@
 | `bestbook`    | Bool         | Default: `false` | 강력 추천(베스트) 도서 여부                                      |
 | `ai_review`   | Text         |                  | AI가 작성하거나 요약한 도서 리뷰 데이터                          |
 | `user_id`     | Relation     | FK (`user.id`)   | 도서를 등록한 사용자 ID (내 도서 목록 조회를 위함)               |
+| `like_count`  | number       | Default: `0`     | 도서 좋아요 수                                                   |
 | `created`     | Autodate     | Auto             | 데이터 생성일                                                    |
 | `updated`     | Autodate     | Auto             | 데이터 수정일                                                    |
 
 ### user
 
-| 필드명     | 타입     | 제약조건  | 설명                   |
-| :--------- | :------- | :-------- | :--------------------- |
-| `id`       | Text     | PK (15자) | 사용자 고유 식별자     |
-| `username` | Text     | Unique    | 사용자 로그인 아이디   |
-| `password` | Text     |           | 사용자 로그인 비밀번호 |
-| `email`    | Email    | Unique    | 사용자 이메일          |
-| `created`  | Autodate | Auto      | 계정 생성일            |
-| `updated`  | Autodate | Auto      | 계정 정보 수정일       |
+| 필드명           | 타입          | 제약조건       | 설명                                                            |
+| :--------------- | :------------ | :------------- | :-------------------------------------------------------------- |
+| `id`             | Text          | PK (15자)      | 사용자 고유 식별자                                              |
+| `username`       | Text          | Unique         | 사용자 로그인 아이디                                            |
+| `password`       | Text          |                | 사용자 로그인 비밀번호                                          |
+| `email`          | Email         | Unique         | 사용자 이메일                                                   |
+| `borrowed_books` | Relation/List | FK (`book.id`) | 대여한 도서 목록 (프론트엔드에서는 배열을 `, `로 join하여 저장) |
+| `created`        | Autodate      | Auto           | 계정 생성일                                                     |
+| `updated`        | Autodate      | Auto           | 계정 정보 수정일                                                |
+
+### likes
+
+| 필드명    | 타입 | 제약조건  | 설명      |
+| :-------- | :--- | :-------- | :-------- |
+| `book_id` | Text | PK (15자) | 도서 ID   |
+| `user_id` | Text | PK (15자) | 사용자 ID |
 
 ---
 
