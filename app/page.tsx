@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { pb } from './lib/pocketbase'
 import AddBookModal from './components/AddBookModal';
 import DashboardChart from './components/DashboardChart';
+import LikeButton from './components/Likebutton';
 
 export interface bookProps{
   id:string
@@ -15,12 +17,21 @@ export interface bookProps{
   thumbnail?:string
   isAvailable?:boolean
   bestbook?:boolean
+  like_count?:number
 }
 
 export default function Home() {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sortOption, setSortOption] = useState<string>('-created');
+  const router = useRouter();
+  const currentUser = pb.authStore.model; // 로그인 상태 확인
+
+  const handleLogout = () => {
+    pb.authStore.clear(); // 로컬 토큰 삭제
+    alert('로그아웃 되었습니다.');
+    router.refresh(); // 화면 리렌더링
+  };
 
   // 1. 도서 목록 조회 (Read)
   const { data: books, isPending } : { data: bookProps[] | undefined; isPending: boolean } = useQuery({
@@ -40,6 +51,7 @@ export default function Home() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['books'] }),
   });
 
+
   return (
     <main className="max-w-5xl mx-auto p-8">
       {/* 헤더 영역 */}
@@ -48,12 +60,34 @@ export default function Home() {
           <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 animate-bounce">📚 오승헌의 직박구리<span className='text-red-300'>🔞</span></h1>
           <p className="animate-shine font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-400 via-red-500 to-slate-400  mt-2">그의 은밀한 취미생활....</p>
         </div>
+
+        <div className="flex gap-4 items-center">
+        {currentUser ? (
+          <>
+            <span className="text-sm font-semibold text-gray-600">
+              {currentUser.email}님
+            </span>
+            <button onClick={handleLogout} className="text-sm text-gray-500 hover:text-black">
+              로그아웃
+            </button>
+          </>
+        ) : (
+          <button 
+            onClick={() => router.push('/login')}
+            className="text-sm font-bold text-blue-600 hover:underline"
+          >
+            로그인
+          </button>
+        )}
         <button 
           onClick={() => setIsModalOpen(true)} 
           className="cursor-pointer px-6 py-2 rounded-lg font-bold text-white shadow-lg animate-rapid-blink"
         >
           + 추가
         </button>
+
+
+      </div>
       </div>
 
       {/* 대시보드 차트 (데이터가 있을 때만 렌더링) */}
@@ -62,19 +96,19 @@ export default function Home() {
       {/* 로딩 상태 */}
       {isPending && <p className="text-center py-10 text-gray-500 text-lg">책장을 불러오는 중입니다... 🔄</p>}
 
-      <button
+      <button className={`mr-4 text-black font-bold ${sortOption === '-created' ? 'text-blue-500 font-bold' : 'text-gray-500'}`}
         onClick={() => setSortOption('-created')}
       >
         최신순
       </button>
       
-      <button
+      <button className={`mr-4 text-black font-bold ${sortOption === 'created' ? 'text-violet-500 font-bold' : 'text-gray-500'}`}
         onClick={() => setSortOption('created')}
       >
         오래된 순
       </button>
 
-      <button
+      <button className={`mr-4 text-black font-bold ${sortOption === 'title' ? 'text-cyan-500 font-bold' : 'text-gray-500'}`}
         onClick={() => setSortOption('title')}
       >
         제목순
@@ -97,6 +131,7 @@ export default function Home() {
             <span className='absolute top-3 left-3 bg-yellow-400 text-black px-2 py-1 rounded-md font-bold'>★강추!</span>
           :<></>  
           }
+
             {/* 썸네일 */}
             <img 
               src={book.thumbnail || "https://via.placeholder.com/150"} 
@@ -108,6 +143,8 @@ export default function Home() {
               <h3 className="font-bold text-lg text-gray-800 line-clamp-1">{book.title}</h3>
               <p className="text-sm text-gray-500 mt-1 line-clamp-1">{book.author} | {book.publisher}</p>
               
+              {/* 💡 독립된 LikeButton 컴포넌트 사용 */}
+            <LikeButton bookId={book.id} initialLikeCount={book.like_count || 0} />
               {/* 대출 토글 버튼 */}
               <button 
                 onClick={() => toggleMutation.mutate({ id: book.id, isAvailable: book.isAvailable })}
