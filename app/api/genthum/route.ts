@@ -17,14 +17,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'OPENAI_API_KEY가 환경 변수(.env)에 설정되어 있지 않습니다.' }, { status: 500 });
     }
 
-    // 1. OpenAI DALL-E 2 API 호출 (gpt image-1)
+    // 1. OpenAI API 호출 (gpt-image-2)
     const response = await axios.post(
       'https://api.openai.com/v1/images/generations',
       {
-        model: 'dall-e-2',
+        model: 'gpt-image-2',
         prompt: prompt,
         n: 1,
-        size: '1024x1024', // DALL-E 2 지원 사이즈
+        size: '1024x1536',
       },
       {
         headers: {
@@ -34,14 +34,21 @@ export async function POST(request: Request) {
       }
     );
 
-    const tempImageUrl = response.data?.data?.[0]?.url;
-    if (!tempImageUrl) {
+    const imageData = response.data?.data?.[0];
+    if (!imageData) {
       return NextResponse.json({ error: 'OpenAI로부터 이미지를 생성하지 못했습니다.' }, { status: 500 });
     }
 
-    // 2. 생성된 임시 이미지 다운로드 (OpenAI URL은 1시간 뒤 만료되므로 로컬에 영구 저장)
-    const imageResponse = await axios.get(tempImageUrl, { responseType: 'arraybuffer' });
-    const buffer = Buffer.from(imageResponse.data);
+    // 2. 이미지 데이터 추출 (Base64가 있으면 즉시 버퍼로 변환, 없으면 URL 다운로드)
+    let buffer: Buffer;
+    if (imageData.b64_json) {
+      buffer = Buffer.from(imageData.b64_json, 'base64');
+    } else if (imageData.url) {
+      const imageResponse = await axios.get(imageData.url, { responseType: 'arraybuffer' });
+      buffer = Buffer.from(imageResponse.data);
+    } else {
+      return NextResponse.json({ error: '생성된 이미지 데이터 형식을 찾을 수 없습니다.' }, { status: 500 });
+    }
 
     // public/covers 폴더 생성
     const publicCoversDir = path.join(process.cwd(), 'public', 'covers');
@@ -54,8 +61,10 @@ export async function POST(request: Request) {
     const filePath = path.join(publicCoversDir, fileName);
     fs.writeFileSync(filePath, buffer);
 
-    // 브라우저 캐싱 방지를 위해 타임스탬프를 쿼리스트링으로 추가하여 반환
-    const savedUrl = `/covers/${fileName}?t=${Date.now()}`;
+    // PocketBase URL 검증 통과를 위해 절대 URL로 생성하여 반환 (캐싱 방지용 타임스탬프 포함)
+    const host = request.headers.get('host') || 'localhost:3000';
+    const protocol = request.headers.get('x-forwarded-proto') || 'http';
+    const savedUrl = `${protocol}://${host}/covers/${fileName}?t=${Date.now()}`;
 
     return NextResponse.json({ url: savedUrl });
   } catch (error: unknown) {
