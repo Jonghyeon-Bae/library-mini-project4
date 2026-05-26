@@ -37,12 +37,12 @@ export default function LoginPage() {
 
         // 2. 가입 직후 자동 로그인 처리 (UX 향상)
         await pb.collection('users').authWithPassword(email, password);
-        alert('회원가입 및 로그인이 완료되었습니다! 🎉');
+        alert('회원가입 및 로그인이 완료되었습니다!');
 
       } else {
         // [로그인 로직]
         await pb.collection('users').authWithPassword(email, password);
-        alert('환영합니다! 🚀');
+        alert('환영합니다!');
       }
 
       // 로그인 성공 시 메인 페이지로 이동 및 라우터 새로고침

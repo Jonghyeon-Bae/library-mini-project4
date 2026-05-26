@@ -20,6 +20,7 @@ interface NewBookProps{
   thumbnail?:string
   isAvailable?:boolean
   bestbook?:boolean
+  user_id?:string
 }
 
 export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
@@ -71,10 +72,17 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
                 <p className="text-sm text-gray-500">{book.authors?.join(', ')}</p>
               </div>
               <button 
-                onClick={() => addMutation.mutate({
-                  title: book.title, authors: book.authors?.join(', '),
-                  publisher: book.publisher, thumbnail: book.thumbnail, isAvailable: true, bestbook:false
-                })}
+                onClick={() => {
+                  const currentUserId = pb.authStore.model?.id;
+                  if (!currentUserId) {
+                    alert('도서를 등록하려면 로그인이 필요합니다.');
+                    return;
+                  }
+                  addMutation.mutate({
+                    title: book.title, authors: book.authors?.join(', '),
+                    publisher: book.publisher, thumbnail: book.thumbnail, isAvailable: true, bestbook:false, user_id: currentUserId
+                  });
+                }}
                 className="bg-gray-800 text-white px-3 py-1 rounded"
               >
                 등록
