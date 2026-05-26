@@ -229,6 +229,7 @@ export default function Home() {
           toggleMutation={toggleMutation}
           deleteMutation={deleteMutation}
           onDelete={() => setSelectedBook(null)}
+          onUpdateBook={setSelectedBook}
         />
       ) : (
         <BookListView
