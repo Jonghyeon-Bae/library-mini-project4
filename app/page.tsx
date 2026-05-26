@@ -117,7 +117,7 @@ export default function Home() {
           
           <button 
             onClick={() => setIsModalOpen(true)} 
-            className="cursor-pointer px-6 py-2 rounded-lg font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 hover:scale-[1.03] active:scale-[0.98] shadow-md shadow-blue-500/20 text-sm transition-all duration-200"
+            className="cursor-pointer px-6 py-2 rounded-lg font-bold text-white shadow-lg animate-rapid-blink"
           >
             + 추가
           </button>
