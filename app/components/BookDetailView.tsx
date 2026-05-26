@@ -1,5 +1,8 @@
 'use client';
+import { useState } from 'react';
 import { bookProps } from '../page';
+import AiThumbnailGenerator from '../genthum/AiThumbnailGenerator';
+import { Sparkles } from 'lucide-react';
 
 interface MutationLike<T>{
   mutate: (args: T) => void;
@@ -10,7 +13,10 @@ export default function BookDetailView({ selectedBook,
 onBack,
 toggleMutation,
 deleteMutation,
-onDelete }: { selectedBook: bookProps; onBack: () => void; toggleMutation: MutationLike<{ id: string; isAvailable?: boolean }>; deleteMutation: MutationLike<string>; onDelete: (id: string) => void }) {
+onDelete,
+onUpdateBook }: { selectedBook: bookProps; onBack: () => void; toggleMutation: MutationLike<{ id: string; isAvailable?: boolean }>; deleteMutation: MutationLike<string>; onDelete: (id: string) => void; onUpdateBook?: (book: bookProps) => void }) {
+  const [isAiGenOpen, setIsAiGenOpen] = useState(false);
+
 
 return(
             <section className="mt-6 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
@@ -45,13 +51,24 @@ return(
           {/* 메인 정보 영역 */}
           <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] gap-8">
             {/* 왼쪽: 표지 */}
-            <div className="bg-gray-50 rounded-2xl border border-gray-100 p-4">
+            {/* 수정_최승헌_6-3 AI 표지 생성 버튼 추가 */}
+            <div className="bg-gray-50 rounded-2xl border border-gray-100 p-4 flex flex-col gap-4">
               <img
                 src={selectedBook.thumbnail || "https://via.placeholder.com/300"}
                 alt={selectedBook.title || "도서 표지"}
                 className="w-full h-105 object-cover rounded-xl bg-gray-100"
               />
+              {(!selectedBook.thumbnail || selectedBook.thumbnail.includes('placeholder')) && (
+                <button
+                  onClick={() => setIsAiGenOpen(true)}
+                  className="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-extrabold text-xs rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Sparkles size={14} />
+                  AI 표지 이미지 생성
+                </button>
+              )}
             </div>
+
 
             {/* 오른쪽: 기본 정보 */}
             <div className="flex flex-col justify-between">
@@ -186,6 +203,24 @@ return(
               도서 삭제
             </button>
           </div>
+
+          {/* 추가_최승헌_6-4 AI 표지 생성기 모달 */}
+          {isAiGenOpen && (
+            <AiThumbnailGenerator
+              isOpen={isAiGenOpen}
+              onClose={() => setIsAiGenOpen(false)}
+              book={selectedBook}
+              onUpdateSuccess={(newThumbnail) => {
+                if (onUpdateBook) {
+                  onUpdateBook({
+                    ...selectedBook,
+                    thumbnail: newThumbnail,
+                  });
+                }
+              }}
+            />
+          )}
         </section>
+
 )
 }

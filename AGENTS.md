@@ -3,3 +3,132 @@
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
+
+---
+
+# AGENTS.md — AI Agent Rules for This Repository
+
+Read `CLAUDE.md` first. This file adds agent-specific rules on top of it.
+
+---
+
+## Before You Write Any Code
+
+1. **Read the Next.js docs that ship with this repo.**
+   This project uses Next.js 16 with React 19 — both are likely newer than your training cutoff.
+   ```
+   node_modules/next/dist/docs/
+   ```
+   Open and read the relevant guide before using any Next.js API.
+
+2. **Check `docs/` for existing specs.**
+   Feature requests are often already specced in `docs/function.md`, `docs/srs.md`, or `docs/wireframe.md`.
+   Do not invent behavior that contradicts those docs.
+
+3. **Check existing code before creating new abstractions.**
+   This codebase is small. Grep before adding a new hook, utility, or component.
+
+---
+
+## Mandatory Checks Before Submitting Changes
+
+- [ ] `npm run lint` passes with no new errors
+- [ ] No new `PocketBase` instances created — use the singleton from `app/lib/pocketbase.ts`
+- [ ] Both `['books']` and `['books-dashboard']` are invalidated after any book mutation
+- [ ] Auth-dependent UI is gated behind `isHydrated` (prevents SSR/hydration mismatch)
+- [ ] Query is gated with `enabled: !!user?.id` when it requires a logged-in user
+- [ ] No `tailwind.config.js` was added (Tailwind v4 uses `postcss.config.mjs`)
+
+---
+
+## Code Generation Rules
+
+### General
+
+- Write TypeScript. No `any` unless the existing code already uses it there.
+- Prefer `useMemo` / `useCallback` for anything passed as props to memoized children.
+- Do not add new dependencies without asking first.
+
+### React Query
+
+Always follow the established query key table from `CLAUDE.md`.
+When adding a new collection query, pick a stable, descriptive key and document it in `CLAUDE.md`.
+
+```ts
+// Good
+useQuery({ queryKey: ['books', sortOption, page], queryFn: ... })
+
+// Bad — unstable key, breaks caching
+useQuery({ queryKey: ['books' + Date.now()], queryFn: ... })
+```
+
+### PocketBase
+
+```ts
+// Always
+import { pb } from '@/lib/pocketbase';
+
+// Never
+import PocketBase from 'pocketbase';
+const pb = new PocketBase('http://127.0.0.1:8090'); // ← creates a second instance
+```
+
+Auth is stored in a cookie. To read current user: `pb.authStore.model`.
+To gate UI on auth: use the `isHydrated` + `user` state pattern from `app/page.tsx`.
+
+### Kakao API
+
+The field name is `authors` (array) coming from Kakao.
+PocketBase stores it as `author` (string, comma-joined).
+Always join before saving:
+
+```ts
+author: book.authors?.join(', ')
+```
+
+### Comments / Commit Style
+
+Follow the team's established tagging style:
+
+```ts
+// 추가_<이름>_<번호> 기능 설명
+// 수정_<이름>_<번호> 변경 이유
+// 최적화_<이름> 최적화 내용
+```
+
+---
+
+## File Creation Rules
+
+| Situation | Where to put it |
+|---|---|
+| New page | `app/<route>/page.tsx` |
+| New reusable component | `app/components/<Name>.tsx` |
+| New API utility / wrapper | `app/lib/<name>.ts` |
+| New Next.js API route | `app/api/<name>/route.ts` |
+| New docs | `docs/<name>.md` |
+
+Always use `'use client'` at the top of any file that uses React state, effects, or browser APIs.
+Omit it for pure server components or utility modules.
+
+---
+
+## WIP Areas — Proceed with Caution
+
+| Area | Status | Notes |
+|---|---|---|
+| `app/genthum/page.tsx` | WIP | AI thumbnail generation — design not finalized |
+| `AddBookModal` `handleAdd` | Commented out | Aladin integration incomplete; do not refactor yet |
+| `app/api/aladin/` | Partial | JSONP proxy — do not change response format |
+| `ai_review` field | Schema exists | Generation flow not implemented |
+
+Do not refactor WIP code unless the task explicitly asks for it.
+
+---
+
+## What Good Output Looks Like
+
+- Minimal diff. Change only what the task requires.
+- No reformatting of unrelated code.
+- Preserve all existing comments (`// 추가_...`, `// 수정_...`).
+- If you discover a bug while working on something else, note it in a comment (`// TODO:`) rather than fixing it silently.
