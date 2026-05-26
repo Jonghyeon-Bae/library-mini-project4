@@ -49,11 +49,10 @@ export default function RegisterModal({ isOpen, onClose, onLoginClick }: Registe
 
       // 1. 회원가입 진행
       await pb.collection('users').create(data);
-
-      // 2. 가입 성공 후 즉시 자동 로그인
+      // 2. 가입 성공 후 즉시 자동 로그인 (이메일로 인증)
       await pb.collection('users').authWithPassword(email.trim(), password);
       
-      alert('회원가입 및 로그인이 완료되었습니다! 🎉');
+      alert('회원가입 및 로그인이 완료되었습니다!');
       onClose();
     } catch (err: any) {
       console.error(err);
