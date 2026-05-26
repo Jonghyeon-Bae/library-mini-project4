@@ -9,8 +9,12 @@ import LoginModal from './login/LoginModal';
 import RegisterModal from './register/RegisterModal';
 import { LogIn, UserPlus, LogOut, User } from 'lucide-react';
 import LikeButton from './components/Likebutton';
+<<<<<<< HEAD
+import RankingSidebar from './components/RankingSidebar';
+=======
 import Link from 'next/link';
 import PopularBooksSidebar from './components/PopularBooksSidebar';
+>>>>>>> 09b09aa16466e60413209607c0057b25982a76f9
 
 // 수정_최승헌_5-2 bookProps 업데이트 (ai_review, user_id, created, updated 필드 추가)
 export interface bookProps{
@@ -55,12 +59,13 @@ export default function Home() {
 
     const unsubscribe = pb.authStore.onChange((token, model) => {
       setUser(model);
+      queryClient.invalidateQueries({ queryKey: ['allLikeCounts'] });
     });
 
     return () => {
       unsubscribe();
     };
-  }, []);
+  }, [queryClient]);
 
   const handleLogout = () => {
     pb.authStore.clear();
@@ -149,7 +154,12 @@ export default function Home() {
   // 수정_최승헌_5-3 완료
 
   return (
-    <main className="max-w-5xl mx-auto p-8">
+    <main className="max-w-7xl mx-auto p-8 flex gap-8">
+      {/* 왼쪽 랭킹 사이드바 */}
+      <RankingSidebar books={books as bookProps[]} />
+
+      {/* 오른쪽 콘텐츠 */}
+      <div className="flex-1">
       {/* 헤더 영역 */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 pb-6 border-b border-gray-100">
         <div>
@@ -563,21 +573,31 @@ export default function Home() {
       <AddBookModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 
       {/* 로그인 모달 */}
-      <LoginModal 
-        isOpen={isLoginOpen} 
-        onClose={() => setIsLoginOpen(false)} 
-        onRegisterClick={() => setIsRegisterOpen(true)} 
+      <LoginModal
+        isOpen={isLoginOpen}
+        onClose={() => setIsLoginOpen(false)}
+        onRegisterClick={() => {
+          setIsLoginOpen(false);
+          setIsRegisterOpen(true);
+        }}
       />
 
       {/* 회원가입 모달 */}
-      <RegisterModal 
-        isOpen={isRegisterOpen} 
-        onClose={() => setIsRegisterOpen(false)} 
-        onLoginClick={() => setIsLoginOpen(true)} 
+      <RegisterModal
+        isOpen={isRegisterOpen}
+        onClose={() => setIsRegisterOpen(false)}
+        onLoginClick={() => {
+          setIsRegisterOpen(false);
+          setIsLoginOpen(true);
+        }}
       />
+<<<<<<< HEAD
+    </div>
+=======
 
       {/* 우측 플로팅 인기 도서 사이드바 */}
       <PopularBooksSidebar />
+>>>>>>> 09b09aa16466e60413209607c0057b25982a76f9
     </main>
   );
 }
