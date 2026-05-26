@@ -8,6 +8,7 @@ import DashboardChart from './components/DashboardChart';
 import LoginModal from './login/LoginModal';
 import RegisterModal from './register/RegisterModal';
 import { LogIn, UserPlus, LogOut } from 'lucide-react';
+import LikeButton from './components/Likebutton';
 
 export interface bookProps{
   id:string
@@ -18,6 +19,7 @@ export interface bookProps{
   thumbnail?:string
   isAvailable?:boolean
   bestbook?:boolean
+  like_count?:number
 }
 
 export default function Home() {
@@ -175,6 +177,9 @@ export default function Home() {
             <div className="p-4">
               <h3 className="font-bold text-lg text-gray-800 line-clamp-1">{book.title}</h3>
               <p className="text-sm text-gray-500 mt-1 line-clamp-1">{book.author} | {book.publisher}</p>
+
+            {/* 💡 독립된 LikeButton 컴포넌트 사용 */}
+            <LikeButton bookId={book.id} initialLikeCount={book.like_count || 0} />
               
               {/* 대출 토글 버튼 */}
               <button 
