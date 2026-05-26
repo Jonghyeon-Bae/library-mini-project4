@@ -132,19 +132,19 @@ export default function Home() {
       {/* 로딩 상태 */}
       {isPending && <p className="text-center py-10 text-gray-500 text-lg">책장을 불러오는 중입니다... 🔄</p>}
 
-      <button
+      <button className={`mr-4 text-black font-bold ${sortOption === '-created' ? 'text-blue-500 font-bold' : 'text-gray-500'}`}
         onClick={() => setSortOption('-created')}
       >
         최신순
       </button>
       
-      <button
+      <button className={`mr-4 text-black font-bold ${sortOption === 'created' ? 'text-violet-500 font-bold' : 'text-gray-500'}`}
         onClick={() => setSortOption('created')}
       >
         오래된 순
       </button>
 
-      <button
+      <button className={`mr-4 text-black font-bold ${sortOption === 'title' ? 'text-cyan-500 font-bold' : 'text-gray-500'}`}
         onClick={() => setSortOption('title')}
       >
         제목순
