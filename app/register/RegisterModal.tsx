@@ -49,7 +49,6 @@ export default function RegisterModal({ isOpen, onClose, onLoginClick }: Registe
 
       // 1. 회원가입 진행
       await pb.collection('users').create(data);
-
       // 2. 가입 성공 후 즉시 자동 로그인 (이메일로 인증)
       await pb.collection('users').authWithPassword(email.trim(), password);
       
