@@ -5,9 +5,9 @@ import { pb } from '../lib/pocketbase';
 
 export default function LikeButton({ bookId, initialLikeCount }: { bookId: string; initialLikeCount: number }) {
   const queryClient = useQueryClient();
-  const currentUser = pb.authStore.model; // 현재 로그인한 유저 정보
+  const currentUser = pb.authStore.model;
 
-  // 1. 현재 유저가 이 책에 좋아요를 눌렀는지 확인하는 쿼리
+  // 1. 현재 유저가 이 책에 좋아요를 눌렀는지 확인
   const { data: likeRecord } = useQuery({
     queryKey: ['likes', bookId, currentUser?.id],
     queryFn: async () => {
@@ -16,32 +16,58 @@ export default function LikeButton({ bookId, initialLikeCount }: { bookId: strin
           `book="${bookId}" && user="${currentUser?.id}"`
         );
       } catch (error) {
-        return null; // 404 (좋아요 안함) 처리
+        return null;
       }
     },
-    enabled: !!currentUser?.id && !!bookId, // 로그인 상태일 때만 실행
+    enabled: !!currentUser?.id && !!bookId,
+  });
+
+  // 2. 현재 책의 좋아요 총 개수 조회
+  const { data: likeStats } = useQuery({
+    queryKey: ['bookLikes', bookId],
+    queryFn: async () => {
+      try {
+        const records = await pb.collection('likes').getFullList({
+          filter: `book="${bookId}"`,
+        });
+        return records.length;
+      } catch (error) {
+        return initialLikeCount;
+      }
+    },
   });
 
   const isLiked = !!likeRecord;
   const userLikeRecordId = likeRecord?.id || null;
+  const currentLikeCount = likeStats ?? initialLikeCount;
 
   // 2. 좋아요 토글 뮤테이션
   const toggleLikeMutation = useMutation({
     mutationFn: async () => {
       if (!currentUser) throw new Error('로그인이 필요합니다.');
 
+      console.log('좋아요 시도:', { bookId, userId: currentUser.id, isLiked });
+
       if (userLikeRecordId) {
+        console.log('좋아요 삭제:', userLikeRecordId);
         return await pb.collection('likes').delete(userLikeRecordId);
       } else {
+        console.log('좋아요 생성:', { book: bookId, user: currentUser.id });
         return await pb.collection('likes').create({
           book: bookId,
           user: currentUser.id,
         });
       }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('좋아요 성공!', data);
       queryClient.invalidateQueries({ queryKey: ['likes', bookId, currentUser?.id] });
+      queryClient.invalidateQueries({ queryKey: ['bookLikes', bookId] });
+      queryClient.invalidateQueries({ queryKey: ['allLikeCounts'] }); // ✅ 추가
       queryClient.invalidateQueries({ queryKey: ['books'] });
+    },
+    onError: (error: any) => {
+      console.error('좋아요 에러:', error?.message || error);
     },
   });
 
@@ -59,7 +85,7 @@ export default function LikeButton({ bookId, initialLikeCount }: { bookId: strin
           : 'bg-green-100 text-green-700 hover:bg-green-200'
       } ${toggleLikeMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
-      {isLiked ? '♥' : '♡'} {initialLikeCount} 
+      {isLiked ? '♥' : '♡'} {currentLikeCount} 
     </button>
   );
 }

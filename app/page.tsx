@@ -7,6 +7,7 @@ import { pb } from './lib/pocketbase'
 import AddBookModal from './components/AddBookModal';
 import DashboardChart from './components/DashboardChart';
 import LikeButton from './components/Likebutton';
+import RankingSidebar from './components/RankingSidebar';
 
 export interface bookProps{
   id:string
@@ -53,7 +54,12 @@ export default function Home() {
 
 
   return (
-    <main className="max-w-5xl mx-auto p-8">
+    <main className="max-w-7xl mx-auto p-8 flex gap-8">
+      {/* 왼쪽 랭킹 사이드바 */}
+      <RankingSidebar books={books as bookProps[]} />
+
+      {/* 오른쪽 콘텐츠 */}
+      <div className="flex-1">
       {/* 헤더 영역 */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 pb-6 border-b border-gray-100">
         <div>
@@ -163,20 +169,7 @@ export default function Home() {
 
       {/* 등록 모달 */}
       <AddBookModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-
-      {/* 로그인 모달 */}
-      <LoginModal 
-        isOpen={isLoginOpen} 
-        onClose={() => setIsLoginOpen(false)} 
-        onRegisterClick={() => setIsRegisterOpen(true)} 
-      />
-
-      {/* 회원가입 모달 */}
-      <RegisterModal 
-        isOpen={isRegisterOpen} 
-        onClose={() => setIsRegisterOpen(false)} 
-        onLoginClick={() => setIsLoginOpen(true)} 
-      />
+    </div>
     </main>
   );
 }
