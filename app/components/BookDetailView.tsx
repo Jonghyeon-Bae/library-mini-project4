@@ -142,9 +142,20 @@ return(
               책 소개
             </h3>
 
-            <p className="text-gray-600 leading-7 whitespace-pre-line">
-              {selectedBook.contents || "등록된 책 소개가 없습니다."}
-            </p>
+            {/* 💡 selectedBook.contents가 있을 때와 없을 때를 나누어 처리합니다 */}
+            {selectedBook.contents ? (
+            // 알라딘 API의 HTML 태그(<b>, <br> 등)를 텍스트가 아닌 실제 문법으로 해석해서 
+            // 기존에 설정하신 text-gray-600 leading-7 스타일에 맞춰 출력합니다.
+              <div 
+                  className="text-gray-600 leading-7 break-keep"
+                  dangerouslySetInnerHTML={{ __html: selectedBook.contents }}
+              />
+            ) : (
+              // 등록된 책 소개가 없을 때는 기존에 작성하신 <p> 태그 스타일을 그대로 보여줍니다.
+              <p className="text-gray-600 leading-7 whitespace-pre-line">
+              등록된 책 소개가 없습니다.
+              </p>
+            )}
           </div>
 
           {/* AI 리뷰 영역 */}

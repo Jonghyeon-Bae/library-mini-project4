@@ -23,6 +23,7 @@ interface NewBookProps{
   bestbook?:boolean
   category?:string
   sales?: number
+  contents?:string // 알라딘의 description을 저장할 필드 추가(장문경)
   user_id?:string
   ai_review?: string; //AI 리뷰 필드 추가 (장문경)
 }
@@ -143,7 +144,8 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
         isAvailable: true, 
         bestbook: metrics.isRecommended, // ➔ 자동 판별된 시스템 추천 여부 바인딩 (리뷰 8.5↑ OR 판매지수 15000↑)
         category: metrics.categoryName,  // 상세 조회로 가져온 카테고리 정보
-        sales: metrics.salesPoint,       // 상세 조회로 가져온 판매 지수
+        sales: metrics.salesPoint,        // 상세 조회로 가져온 판매 지수
+        contents: metrics.description,   // 알라딘 소개글을 DB의 contents 필드에 매핑
         user_id: currentUserId,
         ai_review: metrics.isRecommended 
           ? `[자동 추천] 평점 ${metrics.customerReviewRank}점, 판매지수 ${metrics.salesPoint}점의 검증된 우수 명작입니다.` 

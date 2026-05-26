@@ -70,6 +70,7 @@ export async function POST(req: Request) {
         const bookDetail = data.item[0];
         const customerReviewRank = bookDetail.customerReviewRank || 0; // 고객 평점 (10점 만점)
         const salesPoint = bookDetail.salesPoint || 0;                 // 세일즈 포인트
+        const description = bookDetail.description || "";
 
         // 🏆 [자동 추천 판별 시스템 기준] 
         // 리뷰 평점이 8.5점 이상이거나 판매 지수가 15,000점 이상일 때 강추 도서로 판별
@@ -79,7 +80,8 @@ export async function POST(req: Request) {
             isRecommended,
             customerReviewRank,
             salesPoint,
-            categoryName: bookDetail.categoryName || "미분류"
+            categoryName: bookDetail.categoryName || "미분류",
+            description
         });
 
     } catch (err) {
