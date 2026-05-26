@@ -48,7 +48,7 @@ export default function Home() {
 
   const handleLogout = () => {
     pb.authStore.clear();
-    alert('로그아웃되었습니다. 🔒');
+    alert('로그아웃되었습니다.');
   };
 
 
