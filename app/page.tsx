@@ -58,8 +58,7 @@ export default function Home() {
       {/* 헤더 영역 */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1>장문경의 서재</h1>
-          <p className="animate-shine font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-400 via-red-500 to-slate-400  mt-2">그의 은밀한 취미생활....</p>
+          <h1 className='display-xl'>장문경의 서재</h1>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
@@ -70,7 +69,7 @@ export default function Home() {
       </div>
 
       {/* 대시보드 차트 (데이터가 있을 때만 렌더링) */}
-      <DashboardChart books={books as bookProps[]} />
+      <DashboardChart books={books as bookProps[]}/>
 
       {/* 로딩 상태 */}
       {isPending && <p className="text-center py-10 text-gray-500 text-lg">책장을 불러오는 중입니다... 🔄</p>}
@@ -84,7 +83,7 @@ export default function Home() {
       </div> */}
 
       {/* sortbutton - 민영- */}
-      <div className="liquid-segmented">
+      <div className="liquid-segmented mb-8">
         <div
           className="liquid-segment-indicator"
           style={{
@@ -109,10 +108,11 @@ export default function Home() {
 
 
 
+
       {/* 도서 목록 그리드 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 ">
         {books?.map((book) => (
-          <div key={book.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative hover:shadow-md transition-shadow">
+          <div key={book.id} className="liquid-card">
 
             {/* 삭제 버튼 */}
             <button
