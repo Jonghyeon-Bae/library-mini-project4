@@ -9,8 +9,8 @@ import DashboardChart from './components/DashboardChart';
 export interface bookProps{
   id:string
   title?:string
-  author?:string
-  publisher?:string
+  author?:string 
+  publisher?:string   // Stinrg or Undefined 
   thumbnail?:string
   isAvailable?:boolean
   bestbook?:boolean
@@ -56,7 +56,7 @@ export default function Home() {
 
       {/* 대시보드 차트 (데이터가 있을 때만 렌더링) */}
       <DashboardChart books={books as bookProps[]} />
-
+    
       {/* 로딩 상태 */}
       {isPending && <p className="text-center py-10 text-gray-500 text-lg">책장을 불러오는 중입니다... 🔄</p>}
 

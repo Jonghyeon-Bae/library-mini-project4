@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { pb } from '../lib/pocketbase';
 import { searchBookFromKakao } from '../lib/kakaoApi';
+import { searchBookFromAladin } from '../lib/aladinApi';
 import { Search, X } from 'lucide-react';
 
 interface AddBookModalProps{
@@ -20,6 +21,8 @@ interface NewBookProps{
   thumbnail?:string
   isAvailable?:boolean
   bestbook?:boolean
+  category?:string
+  sales?: number
 }
 
 export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
@@ -40,8 +43,38 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
   const handleSearch = async () => {
     if (!keyword) return alert('검색어를 입력하세요!');
     const data = await searchBookFromKakao(keyword);
-    setResults(data);
+    setResults(data); 
   };
+
+    
+
+  const handleAdd =async (book: NewBookProps) => {
+    const aladin_data= await searchBookFromAladin(book.title??"") 
+    console.log(book.title )
+
+    //const obj = JSON.parse(aladin_data);
+    const clean = aladin_data.replace(/;$/, "");    //옛날 XML 방식이라 JSON 으로 가져오면 오류 
+    const obj = JSON.parse(clean);
+    console.log(obj.item[0].categoryName);
+
+    
+
+    addMutation.mutate({
+      title: book.title,
+      authors: book.authors?.join(", "),
+      publisher: book.publisher,
+      thumbnail: book.thumbnail,
+      isAvailable: true,
+      bestbook: false,
+      category: obj.item[0].categoryName,
+      sales: obj.item[0].customerReviewRank,
+      });
+
+  // 👉 추가 작업
+      
+    
+};
+
 
   if (!isOpen) return null;
 
@@ -71,10 +104,12 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
                 <p className="text-sm text-gray-500">{book.authors?.join(', ')}</p>
               </div>
               <button 
-                onClick={() => addMutation.mutate({
+                 onClick={() => handleAdd(book)}
+                  /*
+                  onClick={() => addMutation.mutate({
                   title: book.title, authors: book.authors?.join(', '),
                   publisher: book.publisher, thumbnail: book.thumbnail, isAvailable: true, bestbook:false
-                })}
+                })}*/
                 className="bg-gray-800 text-white px-3 py-1 rounded"
               >
                 등록
