@@ -9,6 +9,7 @@ import DashboardChart from './components/DashboardChart';
 export interface bookProps{
   id:string
   title?:string
+  contents?:string /*kakao api와 동일 이름 사용  */
   author?:string
   publisher?:string
   thumbnail?:string
@@ -19,11 +20,12 @@ export interface bookProps{
 export default function Home() {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [sortOption, setSortOption] = useState<string>('-created');
 
   // 1. 도서 목록 조회 (Read)
   const { data: books, isPending } : { data: bookProps[] | undefined; isPending: boolean } = useQuery({
-    queryKey: ['books'],
-    queryFn: () => pb.collection('books').getFullList({ sort: '-created' }),
+    queryKey: ['books', sortOption],
+    queryFn: () => pb.collection('books').getFullList({ sort: sortOption }),
   });
 
   // 2. 도서 삭제 (Delete)
@@ -59,6 +61,24 @@ export default function Home() {
 
       {/* 로딩 상태 */}
       {isPending && <p className="text-center py-10 text-gray-500 text-lg">책장을 불러오는 중입니다... 🔄</p>}
+
+      <button
+        onClick={() => setSortOption('-created')}
+      >
+        최신순
+      </button>
+      
+      <button
+        onClick={() => setSortOption('created')}
+      >
+        오래된 순
+      </button>
+
+      <button
+        onClick={() => setSortOption('title')}
+      >
+        제목순
+      </button>
 
       {/* 도서 목록 그리드 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 ">
