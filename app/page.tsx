@@ -10,6 +10,7 @@ import RegisterModal from './register/RegisterModal';
 import { LogIn, UserPlus, LogOut, User } from 'lucide-react';
 import LikeButton from './components/Likebutton';
 import Link from 'next/link';
+import PopularBooksSidebar from './components/PopularBooksSidebar';
 
 // 수정_최승헌_5-2 bookProps 업데이트 (ai_review, user_id, created, updated 필드 추가)
 export interface bookProps{
@@ -574,6 +575,9 @@ export default function Home() {
         onClose={() => setIsRegisterOpen(false)} 
         onLoginClick={() => setIsLoginOpen(true)} 
       />
+
+      {/* 우측 플로팅 인기 도서 사이드바 */}
+      <PopularBooksSidebar />
     </main>
   );
 }
