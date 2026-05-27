@@ -23,7 +23,7 @@ Users can search books (Aladin Book API), register them to a shared library, man
 | Styling          | Tailwind CSS v4                                                              |
 | Backend / DB     | PocketBase 0.26.9 (local, `http://127.0.0.1:8090`)                           |
 | State / Fetching | TanStack React Query v5                                                      |
-| External APIs    | Aladin API (Search & Book Metrics)                           |
+| External APIs    | Aladin API (Search & Book Metrics)                                           |
 | Charts           | Recharts                                                                     |
 | Icons            | Lucide React                                                                 |
 
@@ -58,7 +58,8 @@ app/
   layout.tsx            ← Root layout + font
   globals.css           ← Global Tailwind base styles
   components/
-    AddBookModal.tsx    ← Kakao search → register book flow
+    AddBookModal.tsx    ← Kakao/Aladin search → register book flow
+    ManualAddBookModal.tsx ← Manual book registration with inline AI cover generator
     BookListView.tsx    ← Paginated book grid
     BookDetailView.tsx  ← Book detail panel (borrow toggle, delete, AI review)
     DashboardChart.tsx  ← Recharts pie chart (available vs borrowed)
@@ -68,6 +69,7 @@ app/
     pocketbase.ts       ← Singleton PocketBase client + cookie auth sync
     kakaoApi.ts         ← Kakao book search (Deprecated)
     aladinApi.ts        ← Aladin book data (search, sales rank, category)
+    stylePresets.ts     ← Shared style presets for AI cover generation
   Providers/
     page.tsx            ← React Query QueryClientProvider wrapper
   login/               ← LoginModal component
@@ -75,9 +77,11 @@ app/
   me/
     page.tsx            ← MyPage: user profile + my registered books
   genthum/
-    page.tsx            ← AI thumbnail generation page (WIP)
+    AiThumbnailGenerator.tsx ← AI thumbnail generator for registered books (modal)
   api/
     aladin/             ← Next.js route handler for Aladin API proxy
+    genthum/            ← Next.js route handler for AI thumbnail generation (uses DALL-E)
+    recommend/          ← Next.js route handler for AI search recommendations
 docs/
   schema.md             ← PocketBase collection schemas + ER diagram
   srs.md                ← Software requirements
@@ -93,20 +97,21 @@ docs/
 
 ### `books`
 
-| Field                 | Type               | Notes                                                 |
-| --------------------- | ------------------ | ----------------------------------------------------- |
-| `id`                  | text PK            | auto                                                  |
-| `title`               | text               | required                                              |
-| `contents`            | text               | Aladin API `description` field                        |
-| `author`              | text               | from Aladin `author` string                           |
-| `publisher`           | text               |                                                       |
-| `thumbnail`           | text               | image URL (Aladin API URL or local `/covers/...` path)|
-| `isAvailable`         | bool               | default `true`                                        |
-| `bestbook`            | bool               | default `false` (★ badge)                             |
-| `ai_review`           | text               | AI-generated review                                   |
-| `user_id`             | relation → `users` | who registered this book                              |
-| `like_count`          | number             | default `0`                                           |
-| `created` / `updated` | autodate           |                                                       |
+| Field                 | Type               | Notes                                                  |
+| --------------------- | ------------------ | ------------------------------------------------------ |
+| `id`                  | text PK            | auto                                                   |
+| `title`               | text               | required                                               |
+| `contents`            | text               | Aladin API `description` field                         |
+| `author`              | text               | from Aladin `author` string                            |
+| `publisher`           | text               |                                                        |
+| `thumbnail`           | text               | image URL (Aladin API URL or local `/covers/...` path) |
+| `isAvailable`         | bool               | default `true`                                         |
+| `borrower_id`         | relation → `users` | who borrowed this book (null if available)             |
+| `bestbook`            | bool               | default `false` (★ badge)                              |
+| `ai_review`           | text               | AI-generated review                                    |
+| `user_id`             | relation → `users` | who registered this book                               |
+| `like_count`          | number             | default `0`                                            |
+| `created` / `updated` | autodate           |                                                        |
 
 ### `users` (PocketBase auth)
 
@@ -123,11 +128,11 @@ Standard PocketBase auth fields + `name`, `avatar`, `borrowed_books` (relation l
 
 ### `search_history`
 
-| Field     | Type                     |
-| --------- | ------------------------ |
-| `user`    | relation → `users`       |
-| `keyword` | text                     |
-| `created` | autodate                 |
+| Field     | Type               |
+| --------- | ------------------ |
+| `user`    | relation → `users` |
+| `keyword` | text               |
+| `created` | autodate           |
 
 ---
 
