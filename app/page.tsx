@@ -25,6 +25,7 @@ export interface bookProps{
   publisher?:string   // Stinrg or Undefined 
   thumbnail?:string
   isAvailable?:boolean
+  borrower_id?: string;
   bestbook?:boolean
   like_count?:number
   ai_review?:string
@@ -125,8 +126,8 @@ export default function Home() {
   // 3. 대출 상태 토글 (Update)
   
   const toggleMutation = useMutation({
-    mutationFn: ({ id, isAvailable } : {id:string,isAvailable?:boolean}) =>
-      pb.collection('books').update(id, { isAvailable: !isAvailable }),
+    mutationFn: ({ id, isAvailable, borrower_id } : {id:string,isAvailable?:boolean,borrower_id?:string}) =>
+      pb.collection('books').update(id, { isAvailable: !isAvailable, borrower_id }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['books'] });
       queryClient.invalidateQueries({ queryKey: ['books-dashboard'] });
@@ -140,6 +141,7 @@ export default function Home() {
         return {
           ...prev,
           isAvailable: !variables.isAvailable,
+          borrower_id: variables.borrower_id,
         };
       });
     },
