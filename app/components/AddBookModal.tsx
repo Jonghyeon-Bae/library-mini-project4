@@ -105,11 +105,15 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
 
     if (!targetIsbn13) return false;
 
-    const result = await pb.collection('books').getList(1, 1, {
-      filter: `isbn13 = "${targetIsbn13.replace(/"/g, '\\"')}"`,
-    });
-
-    return result.totalItems > 0;
+    try {
+      const result = await pb.collection('books').getList(1, 1, {
+        filter: `isbn13 = "${targetIsbn13.replace(/"/g, '\\"')}"`,
+      });
+      return result.totalItems > 0;
+    } catch (error) {
+      console.warn('PocketBase books 컬렉션에 isbn13 필드가 없어 중복 검사를 건너뜁니다. 스키마 확인을 권장합니다.', error);
+      return false;
+    }
   };
   // 추가 완료
 
@@ -151,6 +155,10 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
 
     try {
         // 추가_최승헌 등록 전 DB에 같은 isbn13의 책이 있는지 확인
+        if (!book.isbn13) {
+          alert('ISBN13 정보가 없는 도서입니다.');
+          return;
+        }
         const isDuplicate = await checkDuplicateIsbn13(book.isbn13);
 
         if (isDuplicate) {
