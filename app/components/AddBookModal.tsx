@@ -191,9 +191,7 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
     } catch (error) {
       console.error("도서 정보 조회 실패:", error);
       alert("도서 평가 지표를 가져오는 중 오류가 발생했습니다.");
-    } finally {
-      setRegisteringIdx(null); // 로딩 상태 해제
-    }
+    } 
   };
     
   if (!isOpen) return null;
