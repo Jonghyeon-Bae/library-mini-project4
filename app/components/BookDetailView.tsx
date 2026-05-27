@@ -214,7 +214,7 @@ onUpdateBook
         <div className="flex items-center gap-2 mb-3">
           <span className="text-xl">🤖</span>
           <h3 className="text-xl font-bold text-gray-800">
-            AI 리뷰 / 요약
+            AI 요약
           </h3>
         </div>
 
