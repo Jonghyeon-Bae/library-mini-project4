@@ -125,7 +125,7 @@ return(
               </button>
 
               <button
-                onClick={() => setPage((prev:number) => Math.max(prev - 1, 1))}
+                onClick={() => setPage(Math.max(page - 1, 1))}
                 disabled={page === 1}
                 className="px-3 py-2 rounded-lg border text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100"
               >
@@ -147,7 +147,7 @@ return(
               ))}
 
               <button
-                onClick={() => setPage((prev: number) => Math.min(prev + 1, totalPages))}
+                onClick={() => setPage(Math.min(page + 1, totalPages))}
                 disabled={page === totalPages}
                 className="px-3 py-2 rounded-lg border text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100"
               >

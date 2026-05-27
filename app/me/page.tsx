@@ -1,25 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { pb } from '../lib/pocketbase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, BookOpen, Mail, Calendar, User, Trash2 } from 'lucide-react';
-import LikeButton from '../components/Likebutton';
-
-interface BookProps {
-  id: string;
-  title?: string;
-  contents?: string;
-  author?: string;
-  publisher?: string;
-  thumbnail?: string;
-  isAvailable?: boolean;
-  bestbook?: boolean;
-  like_count?: number;
-  created?: string;
-}
+import { ArrowLeft, BookOpen, Mail, Calendar } from 'lucide-react';
+import BookDetailView from '../components/BookDetailView';
+import BookListView from '../components/BookListView';
+import { bookProps } from '../page';
 
 export default function MyPage() {
   const router = useRouter();
@@ -27,6 +16,10 @@ export default function MyPage() {
 
   const [user, setUser] = useState<any>(null);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [selectedBook, setSelectedBook] = useState<bookProps | null>(null);
+  const [page, setPage] = useState(1);
+  const [sortOption, setSortOption] = useState<string>('-created');
+  const perPage = 8;
 
   useEffect(() => {
     const currentUser = pb.authStore.model;
@@ -50,13 +43,28 @@ export default function MyPage() {
     };
   }, [router]);
 
-  // 내가 등록한 도서만 조회
-  const { data: myBooks, isPending } = useQuery<BookProps[]>({
-    queryKey: ['myBooks', user?.id],
+  // 내가 등록한 도서 — 페이지네이션 적용
+  const { data, isPending } = useQuery({
+    queryKey: ['myBooks', user?.id, sortOption, page],
+    queryFn: () =>
+      pb.collection('books').getList(page, perPage, {
+        filter: `user_id = "${user?.id}"`,
+        sort: sortOption,
+      }),
+    enabled: !!user?.id,
+  });
+
+  const myBooks = useMemo(() => {
+    return (data?.items ?? []) as unknown as bookProps[];
+  }, [data?.items]);
+  const totalPages = data?.totalPages ?? 1;
+
+  // 통계 카드용 전체 목록 (페이지네이션과 별도)
+  const { data: myBooksAll } = useQuery<bookProps[]>({
+    queryKey: ['myBooks-stats', user?.id],
     queryFn: () =>
       pb.collection('books').getFullList({
         filter: `user_id = "${user?.id}"`,
-        sort: '-created',
       }),
     enabled: !!user?.id,
   });
@@ -66,19 +74,44 @@ export default function MyPage() {
     mutationFn: (id: string) => pb.collection('books').delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myBooks'] });
+      queryClient.invalidateQueries({ queryKey: ['myBooks-stats'] });
       queryClient.invalidateQueries({ queryKey: ['books'] });
+      queryClient.invalidateQueries({ queryKey: ['books-dashboard'] });
     },
   });
 
-  // 대출 상태 토글
+  // 대출 상태 토글 — 메인 페이지와 동일하게 borrower_id 지원
   const toggleMutation = useMutation({
-    mutationFn: ({ id, isAvailable }: { id: string; isAvailable?: boolean }) =>
-      pb.collection('books').update(id, { isAvailable: !isAvailable }),
-    onSuccess: () => {
+    mutationFn: ({ id, isAvailable, borrower_id }: { id: string; isAvailable?: boolean; borrower_id?: string }) =>
+      pb.collection('books').update(id, { isAvailable: !isAvailable, borrower_id }),
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['myBooks'] });
+      queryClient.invalidateQueries({ queryKey: ['myBooks-stats'] });
       queryClient.invalidateQueries({ queryKey: ['books'] });
+      queryClient.invalidateQueries({ queryKey: ['books-dashboard'] });
+
+      // 상세 페이지에서 대출 상태 변경 시 selectedBook도 즉시 반영
+      setSelectedBook((prev) => {
+        if (!prev || prev.id !== variables.id) return prev;
+        return {
+          ...prev,
+          isAvailable: !variables.isAvailable,
+          borrower_id: variables.borrower_id,
+        };
+      });
     },
   });
+
+  // 페이지네이션 번호 계산
+  const visiblePages = useMemo(() => {
+    const pages: number[] = [];
+    const startPage = Math.max(1, page - 3);
+    const endPage = Math.min(totalPages, page + 3);
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }, [page, totalPages]);
 
   if (!isHydrated || !user) {
     return (
@@ -137,12 +170,12 @@ export default function MyPage() {
               {/* 통계 카드 */}
               <div className="flex gap-4 shrink-0">
                 <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-xl px-6 py-4 text-center">
-                  <p className="text-3xl font-extrabold text-indigo-600">{myBooks?.length ?? '—'}</p>
+                  <p className="text-3xl font-extrabold text-indigo-600">{myBooksAll?.length ?? '—'}</p>
                   <p className="text-xs font-semibold text-slate-500 mt-1">등록한 도서</p>
                 </div>
                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-100 rounded-xl px-6 py-4 text-center">
                   <p className="text-3xl font-extrabold text-green-600">
-                    {myBooks?.filter((b) => b.isAvailable).length ?? '—'}
+                    {myBooksAll?.filter((b) => b.isAvailable).length ?? '—'}
                   </p>
                   <p className="text-xs font-semibold text-slate-500 mt-1">대출 가능</p>
                 </div>
@@ -163,7 +196,7 @@ export default function MyPage() {
         )}
 
         {/* 빈 상태 */}
-        {!isPending && myBooks && myBooks.length === 0 && (
+        {!isPending && (data?.totalItems ?? 0) === 0 && (
           <div className="text-center py-20 px-4">
             <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-indigo-50 mb-6">
               <BookOpen size={40} className="text-indigo-300" />
@@ -179,64 +212,29 @@ export default function MyPage() {
           </div>
         )}
 
-        {/* 도서 목록 그리드 */}
-        {myBooks && myBooks.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {myBooks.map((book) => (
-              <div
-                key={book.id}
-                className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
-              >
-                {/* 삭제 버튼 */}
-                <button
-                  onClick={() => {
-                    if (confirm('정말 삭제하시겠습니까?')) deleteMutation.mutate(book.id);
-                  }}
-                  className="absolute cursor-pointer top-3 right-3 bg-red-500 hover:bg-red-700 text-white w-7 h-7 rounded-full flex justify-center items-center text-sm opacity-80 hover:opacity-100 z-10 transition-all shadow-sm"
-                >
-                  <Trash2 size={14} />
-                </button>
-
-                {/* 추천 배지 */}
-                {book.bestbook && (
-                  <span className="absolute top-3 left-3 bg-yellow-400 text-black px-2 py-1 rounded-md font-bold text-xs shadow-sm">
-                    ★강추!
-                  </span>
-                )}
-
-                {/* 썸네일 */}
-                <img
-                  src={book.thumbnail || 'https://via.placeholder.com/150'}
-                  alt={book.title}
-                  className="w-full h-56 object-cover bg-gray-100 hover:scale-105 transition-transform duration-300"
-                />
-
-                <div className="p-4">
-                  <h3 className="font-bold text-lg text-gray-800 line-clamp-1">{book.title}</h3>
-                  <p className="text-sm text-gray-500 mt-1 line-clamp-1">
-                    {book.author} | {book.publisher}
-                  </p>
-
-                  {/* 좋아요 버튼 */}
-                  <LikeButton bookId={book.id} initialLikeCount={book.like_count || 0} />
-
-                  {/* 대출 토글 버튼 */}
-                  <button
-                    onClick={() =>
-                      toggleMutation.mutate({ id: book.id, isAvailable: book.isAvailable })
-                    }
-                    className={`mt-4 w-full py-2 cursor-pointer rounded-lg font-bold text-sm transition-colors ${
-                      book.isAvailable
-                        ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                        : 'bg-red-100 text-red-700 hover:bg-red-200'
-                    }`}
-                  >
-                    {book.isAvailable ? '대출 가능' : '대출 중'}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+        {/* 도서 상세 보기 — 메인과 동일한 BookDetailView 사용 */}
+        {selectedBook ? (
+          <BookDetailView
+            selectedBook={selectedBook}
+            onBack={() => setSelectedBook(null)}
+            toggleMutation={toggleMutation}
+            deleteMutation={deleteMutation}
+            onDelete={() => setSelectedBook(null)}
+            onUpdateBook={setSelectedBook}
+          />
+        ) : (
+          /* 도서 목록 — 메인과 동일한 BookListView + 페이지네이션 */
+          <BookListView
+            books={myBooks}
+            totalPages={totalPages}
+            page={page}
+            visiblePages={visiblePages}
+            sortOption={sortOption}
+            setPressSetSelectedBook={setSelectedBook}
+            setSortOption={setSortOption}
+            setPage={setPage}
+            deleteMutation={deleteMutation}
+          />
         )}
       </div>
     </main>

@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useState } from 'react';
+import { memo, useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { bookProps } from '../page';
 import { Heart, Trophy, X, Award, Loader2 } from 'lucide-react';
@@ -23,7 +23,6 @@ const RankingSidebar = memo(function RankingSidebar({ onBookSelect }: RankingSid
     queryFn: async () => {
       const records = await pb.collection('books').getFullList<bookProps>({
         sort: '-like_count',
-        fields: 'id,title,author,like_count',
       });
       return records.slice(0, 10);
     },
@@ -32,22 +31,25 @@ const RankingSidebar = memo(function RankingSidebar({ onBookSelect }: RankingSid
 
   // 실시간 반영: PocketBase realtime으로 변경 발생 시 쿼리 무효화하여 최신 데이터 재조회
   const queryClient = useQueryClient();
-  useState(() => {
+  useEffect(() => {
     let unsubscribe: any;
-    try {
-      unsubscribe = pb.collection('books').subscribe('*', () => {
-        queryClient.invalidateQueries({ queryKey: ['books-ranking'] });
-      });
-    } catch (e) {
-      console.error(e)
-      // 구독 실패 시 무시
-    }
+    const initSubscription = async () => {
+      try {
+        unsubscribe = await pb.collection('books').subscribe('*', () => {
+          queryClient.invalidateQueries({ queryKey: ['books-ranking'] });
+        });
+      } catch (e) {
+        console.error(e);
+        // 구독 실패 시 무시
+      }
+    };
+    initSubscription();
     return () => {
       if (unsubscribe && typeof unsubscribe.unsubscribe === 'function') {
         unsubscribe.unsubscribe();
       }
     };
-  });
+  }, [queryClient]);
   
   // ranked는 useQuery로부터 받아온 전체 도서 기준의 랭킹 목록입니다.
   if (!ranked || ranked.length === 0) return null;
