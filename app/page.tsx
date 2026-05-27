@@ -31,7 +31,6 @@ export interface bookProps{
   user_id?:string
   created?:string
   updated?:string
-  cover?:string
   isbn13?:string
 }
 
@@ -153,8 +152,8 @@ export default function Home() {
         
         <Link href="/" className=" items-center gap-3">
         <div>
-          <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 animate-bounce">📚 오승헌의 직박구리<span className='text-red-300'>🔞</span></h1>
-          <p className="animate-shine font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-400 via-red-500 to-slate-400  mt-2">그의 은밀한 취미생활....</p>
+          <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 animate-bounce">📚 5조의 도서관<span className='text-red-300'></span></h1>
+          <p className="animate-shine font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-400 via-red-500 to-slate-400  mt-2">그들의 취미생활....</p>
         </div>
         </Link>
 
