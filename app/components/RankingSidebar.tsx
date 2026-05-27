@@ -1,27 +1,34 @@
 'use client';
 
 import { memo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { bookProps } from '../page';
-import { Heart, Trophy, X, Award } from 'lucide-react';
+import { Heart, Trophy, X, Award, Loader2 } from 'lucide-react';
+import { pb } from '../lib/pocketbase';
+
+// 수정_종현_1 props에서 books 배열을 받던 방식을 제거하고,
+// 내부에서 getFullList로 전체 도서를 직접 조회하여 페이지네이션과 무관한 전체 기준 랭킹을 표시
 
 interface RankingSidebarProps {
-  books: bookProps[];
   onBookSelect?: (book: bookProps) => void;
 }
 
-const RankingSidebar = memo(function RankingSidebar({ books, onBookSelect }: RankingSidebarProps) {
+const RankingSidebar = memo(function RankingSidebar({ onBookSelect }: RankingSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  if (!books || books.length === 0) return null;
-
-  // 1. 이미 books 배열 안에 있는 like_count를 활용하여 정렬만 수행 (O(N log N))
-  const ranked = [...books]
-    .map((book) => ({
-      ...book,
-      likeCount: book.like_count || 0,
-    }))
-    .sort((a, b) => b.likeCount - a.likeCount)
-    .slice(0, 10);
+  // 추가_종현_1 전체 도서를 like_count 내림차순으로 최대 10개 가져옴
+  // query key: ['books-ranking'] — 페이지/정렬 옵션과 독립적
+  const { data: ranked = [], isLoading } = useQuery<bookProps[]>({
+    queryKey: ['books-ranking'],
+    queryFn: async () => {
+      const records = await pb.collection('books').getFullList<bookProps>({
+        sort: '-like_count',
+        fields: 'id,title,author,like_count',
+      });
+      return records.slice(0, 10);
+    },
+    staleTime: 1000 * 60, // 1분 캐시
+  });
 
   const handleBookClick = (book: bookProps) => {
     if (onBookSelect) {
@@ -30,60 +37,77 @@ const RankingSidebar = memo(function RankingSidebar({ books, onBookSelect }: Ran
     setIsOpen(false); // 모바일 모달 열려있으면 닫기
   };
 
-  const renderRankingList = () => (
-    <ul className="space-y-3">
-      {ranked.map((book, idx) => {
-        // 1, 2, 3위 트로피 색상 지정
-        const isTop3 = idx < 3;
-        const trophyColor =
-          idx === 0
-            ? 'text-amber-500 hover:scale-110'
-            : idx === 1
-            ? 'text-slate-400'
-            : 'text-amber-700';
+  const renderRankingList = () => {
+    if (isLoading) {
+      return (
+        <div className="flex items-center justify-center py-8 text-slate-400">
+          <Loader2 size={20} className="animate-spin mr-2" />
+          <span className="text-xs">불러오는 중...</span>
+        </div>
+      );
+    }
 
-        return (
-          <li
-            key={book.id}
-            onClick={() => handleBookClick(book)}
-            className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all duration-200 cursor-pointer group"
-          >
-            {/* 순위 표시: 1-3위는 트로피, 그 외는 숫자 */}
-            <div className="shrink-0 w-6 h-6 flex items-center justify-center">
-              {isTop3 ? (
-                <Trophy size={18} className={`${trophyColor} transition-transform duration-300`} />
-              ) : (
-                <span className="text-xs font-bold text-slate-400 group-hover:text-slate-600">
-                  {idx + 1}
+    if (ranked.length === 0) {
+      return (
+        <p className="text-xs text-slate-400 text-center py-6">등록된 도서가 없습니다.</p>
+      );
+    }
+
+    return (
+      <ul className="space-y-3">
+        {ranked.map((book, idx) => {
+          // 1, 2, 3위 트로피 색상 지정
+          const isTop3 = idx < 3;
+          const trophyColor =
+            idx === 0
+              ? 'text-amber-500 hover:scale-110'
+              : idx === 1
+              ? 'text-slate-400'
+              : 'text-amber-700';
+
+          return (
+            <li
+              key={book.id}
+              onClick={() => handleBookClick(book)}
+              className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all duration-200 cursor-pointer group"
+            >
+              {/* 순위 표시: 1-3위는 트로피, 그 외는 숫자 */}
+              <div className="shrink-0 w-6 h-6 flex items-center justify-center">
+                {isTop3 ? (
+                  <Trophy size={18} className={`${trophyColor} transition-transform duration-300`} />
+                ) : (
+                  <span className="text-xs font-bold text-slate-400 group-hover:text-slate-600">
+                    {idx + 1}
+                  </span>
+                )}
+              </div>
+
+              {/* 책 정보 */}
+              <div className="flex-1 min-w-0">
+                <p
+                  className="text-xs font-bold text-slate-700 group-hover:text-indigo-600 transition-colors truncate"
+                  title={book.title}
+                >
+                  {book.title}
+                </p>
+                <p className="text-[10px] text-slate-400 truncate">
+                  {book.author}
+                </p>
+              </div>
+
+              {/* 좋아요 개수 */}
+              <div className="shrink-0">
+                <span className="flex items-center gap-0.5 text-[10px] text-pink-500 bg-pink-50 px-2 py-0.5 rounded-full font-bold transition-transform group-hover:scale-105">
+                  <Heart size={8} fill="currentColor" />
+                  {book.like_count ?? 0}
                 </span>
-              )}
-            </div>
-
-            {/* 책 정보 */}
-            <div className="flex-1 min-w-0">
-              <p
-                className="text-xs font-bold text-slate-700 group-hover:text-indigo-600 transition-colors truncate"
-                title={book.title}
-              >
-                {book.title}
-              </p>
-              <p className="text-[10px] text-slate-400 truncate">
-                {book.author}
-              </p>
-            </div>
-
-            {/* 좋아요 개수 */}
-            <div className="shrink-0">
-              <span className="flex items-center gap-0.5 text-[10px] text-pink-500 bg-pink-50 px-2 py-0.5 rounded-full font-bold transition-transform group-hover:scale-105">
-                <Heart size={8} fill="currentColor" />
-                {book.likeCount}
-              </span>
-            </div>
-          </li>
-        );
-      })}
-    </ul>
-  );
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    );
+  };
 
   return (
     <>
