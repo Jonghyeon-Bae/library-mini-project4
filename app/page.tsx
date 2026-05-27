@@ -12,6 +12,8 @@ import RankingSidebar from './components/RankingSidebar';
 import Link from 'next/link';
 import BookDetailView from './components/BookDetailView';
 import BookListView from './components/BookListView';
+import { Manuale } from 'next/font/google';
+import ManualAddBookModal from './components/ManualAddBookModal';
 
 
 // 수정_최승헌_5-2 bookProps 업데이트 (ai_review, user_id, created, updated 필드 추가)
@@ -38,17 +40,16 @@ export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sortOption, setSortOption] = useState<string>('-created');
 
+  // 
+  const [isManualModalOpen, setIsManualModalOpen] = useState(false);
+
   // 인증 관련 상태
   const [user, setUser] = useState<any>(null);
   const [isHydrated, setIsHydrated] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
 
-  // 추가_최승헌_3-1 선택된 도서 정보 추가
   const [selectedBook, setSelectedBook] = useState<bookProps | null>(null);
-  // 추가_최승헌_3-1 완료
-
-  // 수정_최승헌_1-1 페이지네이션 상태 추가
   const [page, setPage] = useState(1);
   const perPage = 8;
 
@@ -202,7 +203,13 @@ export default function Home() {
             onClick={() => setIsModalOpen(true)} 
             className="cursor-pointer px-6 py-2 rounded-lg font-bold text-white shadow-lg animate-rapid-blink"
           >
-            + 추가
+            + 추가(API)
+          </button>
+          <button 
+            onClick={() => setIsManualModalOpen(true)} 
+            className="cursor-pointer px-6 py-2 rounded-lg font-bold text-white shadow-lg animate-rapid-blink"
+          >
+            + 추가(Manual)
           </button>
         </div>
       </div>
@@ -238,6 +245,8 @@ export default function Home() {
 
       {/* 등록 모달 */}
       <AddBookModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      {/* 수동 등록 모달 */}
+      <ManualAddBookModal isOpen={isManualModalOpen} onClose={() => setIsManualModalOpen(false)} />
 
       {/* 로그인 모달 */}
       <LoginModal
