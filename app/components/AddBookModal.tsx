@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { pb } from '../lib/pocketbase';
-import { searchBookFromKakao } from '../lib/kakaoApi';
 import { searchBookFromAladin, lookupBookMetricsFromAladin } from '../lib/aladinApi';
 import { Search, X, Clock, Loader2, Sparkles, RefreshCw } from 'lucide-react';
 import { bookProps } from '../page';
+import axios from 'axios';
 
 interface AddBookModalProps{
   isOpen:boolean
@@ -115,7 +115,6 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
       return false;
     }
   };
-  // 추가 완료
 
   // 2. 검색 실행 함수 (태그 클릭 시 즉시 검색을 위해 매개변수 분리)
   const handleSearch = async (targetKeyword: string) => {
@@ -141,7 +140,6 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
     }
   };
 
-  // 장문경 수정
   // 💡 [핵심 추가] 등록 버튼 클릭 시 조회 API를 거쳐 최종 저장하는 함수
   const handleAddWithMetrics = async (book: bookProps, idx: number) => {
     const currentUserId = pb.authStore.model?.id;

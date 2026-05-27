@@ -4,8 +4,6 @@ import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
 
-
-
 // OpenAI DALL-E 이미지 생성 API 라우트 추가
 export async function POST(request: Request) {
   try {

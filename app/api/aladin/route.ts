@@ -6,8 +6,6 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const query = searchParams.get("q");
 
-    //const ALADIN_TTB_KEY = process.env.ALADIN_TTB_KEY;
-        
     try {
         const res = await axios.get(
         "https://www.aladin.co.kr/ttb/api/ItemSearch.aspx",
@@ -89,13 +87,3 @@ export async function POST(req: Request) {
         return NextResponse.json({ isRecommended: false, salesPoint: 0, customerReviewRank: 0 }, { status: 500 });
     }
 }
-/* 기존코드
-    return NextResponse.json(res.data);
-    } catch (err) {
-    return NextResponse.json(
-        { message: "Aladin API error" },
-        { status: 500 }
-    );
-    }
-}
-*/
