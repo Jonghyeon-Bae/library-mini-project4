@@ -13,7 +13,6 @@ const RankingSidebar = memo(function RankingSidebar({ books, onBookSelect }: Ran
   const [isOpen, setIsOpen] = useState(false);
 
   if (!books || books.length === 0) return null;
-
   // 1. 이미 books 배열 안에 있는 like_count를 활용하여 정렬만 수행 (O(N log N))
   const ranked = [...books]
     .map((book) => ({

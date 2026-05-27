@@ -1,7 +1,7 @@
 import axios from "axios";
 import { NextResponse } from "next/server";
 
-const ALADIN_TTB_KEY = "ttbwgj21801108001";
+const ALADIN_TTB_KEY = process.env.ALADIN_TTB_KEY;
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const query = searchParams.get("q");

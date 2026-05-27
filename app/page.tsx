@@ -29,8 +29,9 @@ export interface bookProps{
   user_id?:string
   created?:string
   updated?:string
+  cover?:string
+  isbn13?:string
 }
-// 수정_최승헌_5-2 완료
 
 export default function Home() {
   const queryClient = useQueryClient();
@@ -71,7 +72,6 @@ export default function Home() {
   }, []);
 
   // 1. 도서 목록 조회 (Read)
-  // 수정_최승헌_1-1 페이지네이션 추가된 도서 목록 조회
   const { data, isPending } = useQuery({
     queryKey: ['books', sortOption, page],
     queryFn: () =>
@@ -85,7 +85,6 @@ export default function Home() {
   }, [data?.items]);
   const totalPages = data?.totalPages ?? 1;
 
-  // 추가_최승헌_4-1 대시보드용 전체 도서 데이터 조회
   // 목록은 페이지네이션 데이터, 대시보드는 전체 통계 데이터가 필요해서 분리
   const { data: dashboardBooks } = useQuery({
     queryKey: ['books-dashboard'],
@@ -117,23 +116,18 @@ export default function Home() {
     mutationFn: (id:string) => pb.collection('books').delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['books'] });
-      // 추가_최승헌_4-3 도서 삭제 시 대시보드용 쿼리 갱신 추가
       queryClient.invalidateQueries({ queryKey: ['books-dashboard'] });
-      // 추가_최승헌_4-3 완료
     },
   });
 
   // 3. 대출 상태 토글 (Update)
   
-  // 수정_최승헌_5-3 상세 정보에서 대출 상태 변경 시 selectedBook도 즉시 반영
   const toggleMutation = useMutation({
     mutationFn: ({ id, isAvailable } : {id:string,isAvailable?:boolean}) =>
       pb.collection('books').update(id, { isAvailable: !isAvailable }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['books'] });
-      // 추가_최승헌_4-4 도서 대출 시 대시보드용 쿼리 갱신 추가
       queryClient.invalidateQueries({ queryKey: ['books-dashboard'] });
-        // 추가_최승헌_4-4 완료
 
       // 상세 페이지에서 대출 상태 변경 시 selectedBook도 즉시 반영
       setSelectedBook((prev) => {
@@ -148,7 +142,6 @@ export default function Home() {
       });
     },
   });
-  // 수정_최승헌_5-3 완료
 
   return (
     <main className="max-w-5xl mx-auto p-8">
@@ -215,13 +208,11 @@ export default function Home() {
       </div>
 
       {/* 대시보드 차트 (전체 데이터 기준) */}
-      {/* 수정_최승헌_4-2 대시보드 차트에 전체 도서 데이터(allBooks) 전달하도록 변경 */}
       <DashboardChart books={allBooks} />
     
       {/* 로딩 상태 */}
       {isPending && <p className="text-center py-10 text-gray-500 text-lg">책장을 불러오는 중입니다... 🔄</p>}
 
-      {/* 추가_최승헌_5-1 도서 상세 정보 페이지 추가 */}
       {selectedBook ? (
         <BookDetailView 
           selectedBook={selectedBook}

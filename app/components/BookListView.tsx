@@ -1,22 +1,32 @@
 'use client';
 import { bookProps } from '../page';
 import LikeButton from '../components/Likebutton';
+import { memo } from 'react';
 
-export default function BookListView({ books,
-totalPages,
-page,
-visiblePages,
+
+const BookListView = memo(function BookListView({ 
+    books,
+    totalPages,
+    page,
+    visiblePages,
 sortOption,
 setPressSetSelectedBook,
 setSortOption,
 setPage,
-deleteMutation }: { books: bookProps[]; totalPages: number; page: number; visiblePages: number[]; sortOption: string; setPressSetSelectedBook: (book: bookProps) => void; setSortOption: (option: string) => void; setPage: (pageNum: number) => void; deleteMutation: any }) {
+deleteMutation 
+}: {
+books: bookProps[]
+totalPages: number
+page: number
+visiblePages: number[]
+sortOption: string
+setPressSetSelectedBook: (book: bookProps) => void
+setSortOption: (option: string) => void
+setPage: (pageNum: number) => void
+deleteMutation: any }) {
 
 return(
         <>
-          {/* 추가_최승헌_5-1 완료 */}
-
-          {/* 수정_최승헌_2-1 정렬 버튼 영역 UI 개선 (border 스타일 + 활성 상태 색상) */}
           {/* 정렬 버튼 영역 */}
           <div className="flex gap-3 mb-6 mt-4">
             <button
@@ -55,25 +65,20 @@ return(
               제목순
             </button>
           </div>
-          {/* 수정_최승헌_2-1 완료 */}
 
           {/* 도서 목록 그리드 */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 ">
-            {/* 수정_최승헌_3-2 도서 카드 클릭 시 선택 정보 추가 */}
             {books?.map((book) => (
               <div
                 key={book.id}
                 onClick={() => setPressSetSelectedBook(book)}
                 className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative hover:shadow-md transition-shadow cursor-pointer"
               >
-            {/* 수정_최승헌_3-2 완료 */}
 
                 {/* 삭제 버튼 */}
                 <button 
                   onClick={(e) => {
-                    // 추가_최승헌_3-3 버튼 이벤트 전파 방지
                     e.stopPropagation();
-                    // 추가_최승헌_3-3 완료
 
                     if(confirm('정말 삭제하시겠습니까?')) {
                       deleteMutation.mutate(book.id);
@@ -100,19 +105,15 @@ return(
                   <h3 className="font-bold text-lg text-gray-800 line-clamp-1">{book.title}</h3>
                   <p className="text-sm text-gray-500 mt-1 line-clamp-1">{book.author} | {book.publisher}</p>
 
-                  {/* 💡 독립된 LikeButton 컴포넌트 사용 (원본 page.tsx 기능 유지) */}
-                  {/* 추가_최승헌_3-3 좋아요 버튼도 카드 클릭 이벤트 전파 방지 */}
                   <div onClick={(e) => e.stopPropagation()}>
                     <LikeButton bookId={book.id} initialLikeCount={book.like_count || 0} />
                   </div>
-                  {/* 추가_최승헌_3-3 완료 */}
 
                 </div>
               </div>
             ))}
           </div>
 
-          {/* 추가_최승헌_1-2 페이지네이션 UI 버튼 추가 */}
           {totalPages > 1 && (
             <div className="flex justify-center items-center gap-2 mt-8 mb-10">
               <button
@@ -162,7 +163,8 @@ return(
               </button>
             </div>
           )}
-          {/* 추가_최승헌_1-2 완료 */}
         </>
 )
 }
+  );
+  export default BookListView

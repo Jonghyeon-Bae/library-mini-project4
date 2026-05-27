@@ -31,6 +31,7 @@ const LikeButton = memo(function LikeButton({ bookId, initialLikeCount }: { book
       try {
         return await pb.collection('books').getOne(bookId);
       } catch (error) {
+        console.error(error)
         return null;
       }
     },
@@ -47,7 +48,6 @@ const LikeButton = memo(function LikeButton({ bookId, initialLikeCount }: { book
   const toggleLikeMutation = useMutation({
     mutationFn: async () => {
       if (!currentUser) throw new Error('로그인이 필요합니다.');
-
       console.log('좋아요 시도:', { bookId, userId: currentUser.id, isLiked });
 
       if (userLikeRecordId) {

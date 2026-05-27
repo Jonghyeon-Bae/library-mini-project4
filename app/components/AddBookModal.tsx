@@ -6,12 +6,12 @@ import { pb } from '../lib/pocketbase';
 import { searchBookFromKakao } from '../lib/kakaoApi';
 import { searchBookFromAladin, lookupBookMetricsFromAladin } from '../lib/aladinApi';
 import { Search, X, Clock, Loader2 } from 'lucide-react';
+import { bookProps } from '../page';
 
 interface AddBookModalProps{
   isOpen:boolean
   onClose:()=>void
 }
-
 
 interface NewBookProps{
   id?:string
@@ -66,16 +66,9 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
   const handleSearch = async (targetKeyword: string) => {
     if (!targetKeyword.trim()) return alert('검색어를 입력하세요!');
     
-
   // 알라딘 상품 검색 API 실행
   const data = await searchBookFromAladin(targetKeyword);
   setResults(data);
-
-    /*
-    // 카카오 API 검색 결과 세팅
-    const data = await searchBookFromKakao(targetKeyword);
-    setResults(data); 
-    */
 
     // 검색 기록 저장 (Create)
     if (currentUser?.id) {
@@ -93,35 +86,9 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
     }
   };
 
-    
-
-//   const handleAdd =async (book: NewBookProps) => {
-//     const aladin_data= await searchBookFromAladin(book.title??"") 
-//     console.log(book.title )
-
-//     //const obj = JSON.parse(aladin_data);
-//     const clean = aladin_data.replace(/;$/, "");    //옛날 XML 방식이라 JSON 으로 가져오면 오류 
-//     const obj = JSON.parse(clean);
-//     console.log(obj);
-
-    
-
-//     addMutation.mutate({
-//       title: book.title,
-//       authors: book.authors?.join(", "),
-//       publisher: book.publisher,
-//       thumbnail: book.thumbnail,
-//       isAvailable: true,
-//       bestbook: false,
-//       category: obj.item[0].categoryName,
-//       sales: obj.item[0].customerReviewRank,
-//       });
-//   };
-
-
   // 장문경 수정
   // 💡 [핵심 추가] 등록 버튼 클릭 시 조회 API를 거쳐 최종 저장하는 함수
-  const handleAddWithMetrics = async (book: any, idx: number) => {
+  const handleAddWithMetrics = async (book: bookProps, idx: number) => {
     const currentUserId = pb.authStore.model?.id;
     if (!currentUserId) {
       alert('도서를 등록하려면 로그인이 필요합니다.');
@@ -138,7 +105,7 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
       // 2. 확보된 데이터와 자동 판별된 추천 여부(isRecommended)를 결합하여 DB에 전송
       addMutation.mutate({
         title: book.title, 
-        author: book.author, // 알라딘은 저자 정보가 문자열로 제공됨
+        authors: book.author, // 알라딘은 저자 정보가 문자열로 제공됨
         publisher: book.publisher, 
         thumbnail: book.cover, // 알라딘의 이미지 키값은 cover
         isAvailable: true, 
@@ -203,7 +170,7 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
         )}
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {results.map((book: any, idx) => (
+          {results.map((book: bookProps, idx) => (
             <div key={idx} className="flex gap-4 items-center border-b pb-4">
               {/* 알라딘 API는 이미지 키가 thumbnail이 아닌 cover로 제공됨 */}
               <img src={book.cover || "https://via.placeholder.com/50"} alt="표지" className="w-12 object-cover" />
@@ -232,33 +199,5 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
         </div>
       </div>
     </div>
-
-
-/*
-              <button 
-                //  onClick={() => handleAdd(book)}
-                  
-                  onClick={() => {
-                  const currentUserId = pb.authStore.model?.id;
-                  if (!currentUserId) {
-                    alert('도서를 등록하려면 로그인이 필요합니다.');
-                    return;
-                  }
-                  addMutation.mutate({
-                    title: book.title, authors: book.authors?.join(', '),
-                    publisher: book.publisher, thumbnail: book.thumbnail, isAvailable: true, bestbook:false, user_id: currentUserId
-                  });
-                }}
-                className="bg-gray-800 text-white px-3 py-1 rounded"
-              >
-                등록
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-
-    */
   );
 }
