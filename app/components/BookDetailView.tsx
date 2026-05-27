@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { bookProps } from '../page';
 import AiThumbnailGenerator from '../genthum/AiThumbnailGenerator';
-import { Sparkles } from 'lucide-react';
+import { Palette } from 'lucide-react';
 
 interface MutationLike<T>{
   mutate: (args: T) => void;
@@ -71,7 +71,7 @@ onUpdateBook
               onClick={() => setIsAiGenOpen(true)}
               className="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-extrabold text-xs rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer"
             >
-              <Sparkles size={14} />
+              <Palette size={14} />
               AI 표지 이미지 생성
             </button>
           )}

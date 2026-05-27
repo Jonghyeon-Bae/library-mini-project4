@@ -3,7 +3,9 @@ import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
 
-// 추가_최승헌_7-1 OpenAI DALL-E 이미지 생성 API 라우트 추가
+
+
+// OpenAI DALL-E 이미지 생성 API 라우트 추가
 export async function POST(request: Request) {
   try {
     const { prompt, bookId } = await request.json();
