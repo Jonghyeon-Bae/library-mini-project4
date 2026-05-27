@@ -16,7 +16,6 @@ interface RankingSidebarProps {
 const RankingSidebar = memo(function RankingSidebar({ onBookSelect }: RankingSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-<<<<<<< HEAD
   if (!books || books.length === 0) return null;
   // 1. 이미 books 배열 안에 있는 like_count를 활용하여 정렬만 수행 (O(N log N))
   const ranked = [...books]
@@ -26,7 +25,6 @@ const RankingSidebar = memo(function RankingSidebar({ onBookSelect }: RankingSid
     }))
     .sort((a, b) => b.likeCount - a.likeCount)
     .slice(0, 10);
-=======
   // 추가_종현_1 전체 도서를 like_count 내림차순으로 최대 10개 가져옴
   // query key: ['books-ranking'] — 페이지/정렬 옵션과 독립적
   const { data: ranked = [], isLoading } = useQuery<bookProps[]>({
@@ -40,7 +38,6 @@ const RankingSidebar = memo(function RankingSidebar({ onBookSelect }: RankingSid
     },
     staleTime: 1000 * 60, // 1분 캐시
   });
->>>>>>> origin/youngbin
 
   const handleBookClick = (book: bookProps) => {
     if (onBookSelect) {
