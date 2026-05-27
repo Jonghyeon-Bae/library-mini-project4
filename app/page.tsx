@@ -92,7 +92,8 @@ export default function Home() {
     queryFn: () => pb.collection('books').getFullList(),
   });
 
-  // 최적화_useMemo로 allBooks 메모이제이션: DashboardChart와 RankingSidebar의 memo 효과 극대화
+  // 최적화_useMemo로 allBooks 메모이제이션: DashboardChart의 memo 효과 극대화
+  // 수정_종현_1 RankingSidebar는 내부에서 getFullList로 직접 조회하므로 여기서 전달하지 않음
   const allBooks = useMemo(() => {
     return (dashboardBooks ?? []) as unknown as bookProps[];
   }, [dashboardBooks]);
@@ -268,8 +269,8 @@ export default function Home() {
         }}
       />
 
-      {/* 좌측 플로팅 랭킹 사이드바 */}
-      <RankingSidebar books={books as bookProps[]} onBookSelect={setSelectedBook} />
+      {/* 좌측 플로팅 랭킹 사이드바 — 수정_종현_1 books prop 제거, 내부 getFullList 조회 */}
+      <RankingSidebar onBookSelect={setSelectedBook} />
     </main>
   );
 }
