@@ -13,7 +13,6 @@ interface ManualAddBookModalProps {
 interface NewBookProps {
   id?: string;
   title?: string;
-  authors?: string;
   author?: string;
   publisher?: string;
   thumbnail?: string;
