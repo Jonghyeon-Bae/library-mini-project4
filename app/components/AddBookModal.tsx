@@ -92,6 +92,9 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
       queryClient.invalidateQueries({ queryKey: ['books'] }); // 저장 성공시 목록 새로고침!
       alert('도서가 등록되었습니다!');
       onClose(); 
+      setResults([])
+      setKeyword('')
+      setAiRecommendations([])
     },
   });
 
@@ -167,7 +170,12 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
       <div className="bg-white rounded-xl w-full max-w-xl max-h-[80vh] flex flex-col">
         <div className="p-4 border-b flex justify-between">
           <h2 className="font-bold">도서 검색 및 등록 (알라딘 자동 추천 시스템)</h2>
-          <button onClick={onClose}><X size={20}/></button>
+          <button onClick={()=>{
+            onClose()
+            setResults([])
+            setKeyword('')
+            setAiRecommendations([])
+          }}><X size={20}/></button>
         </div>
         
         <div className="p-4 flex gap-2 border-b">
