@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { randomUUID } from 'crypto';
 import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
@@ -10,9 +11,12 @@ export async function POST(request: Request) {
   try {
     const { prompt, bookId } = await request.json();
 
-    if (!prompt || !bookId) {
-      return NextResponse.json({ error: 'Prompt and bookId are required' }, { status: 400 });
+    if (!prompt) {
+      return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
     }
+
+    // 수정_종현 bookId가 없으면 임시 UUID를 파일명으로 사용 (수동 등록 시 아직 DB 레코드가 없음)
+    const fileId = bookId || randomUUID();
 
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
@@ -59,7 +63,7 @@ export async function POST(request: Request) {
     }
 
     // 도서 고유 ID를 파일명으로 사용하여 저장 (기존 이미지 덮어쓰기하여 파일 누적 방지)
-    const fileName = `${bookId}.png`;
+    const fileName = `${fileId}.png`;
     const filePath = path.join(publicCoversDir, fileName);
     fs.writeFileSync(filePath, buffer);
 
