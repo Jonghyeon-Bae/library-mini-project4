@@ -8,16 +8,16 @@
 
 ### books
 
-실제 클라이언트 `bookProps` 인터페이스와 카카오 API 연동, 그리고 AI 리뷰 기능을 고려하여 설계된 테이블입니다.
+실제 클라이언트 `bookProps` 인터페이스와 알라딘 API 연동, 그리고 AI 리뷰 기능을 고려하여 설계된 테이블입니다.
 
 | 필드명        | 타입         | 제약조건         | 설명                                                             |
 | :------------ | :----------- | :--------------- | :--------------------------------------------------------------- |
 | `id`          | Text         | PK (15자)        | 도서 데이터 고유 식별자                                          |
 | `title`       | Text         | Required         | 도서 제목                                                        |
-| `contents`    | Text         |                  | 도서 본문 및 설명 (카카오 API `contents`와 동일하게 매핑)        |
+| `contents`    | Text         |                  | 도서 본문 및 설명 (알라딘 API `description`과 동일하게 매핑)        |
 | `author`      | Text         | Required         | 도서 저자 (프론트엔드에서는 배열을 `, `로 join하여 저장)         |
 | `publisher`   | Text         |                  | 출판사                                                           |
-| `thumbnail`   | URL / String |                  | 도서 표지 썸네일 (카카오 API 이미지 URL 또는 AI 생성 이미지 URL) |
+| `thumbnail`   | URL / String |                  | 도서 표지 썸네일 (알라딘 API 이미지 URL 또는 AI 생성 이미지 URL) |
 | `isAvailable` | Bool         | Default: `true`  | 대여 가능 여부                                                   |
 | `bestbook`    | Bool         | Default: `false` | 강력 추천(베스트) 도서 여부                                      |
 | `user_id`     | Relation     | FK (`users.id`)  | 도서를 등록한 사용자 ID (내 도서 목록 조회를 위함)               |
