@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { bookProps } from '../page';
 import AiThumbnailGenerator from '../genthum/AiThumbnailGenerator';
+import { Sparkles } from 'lucide-react';
+import { pb } from '../lib/pocketbase';
 import { Palette } from 'lucide-react';
 
 interface MutationLike<T>{
@@ -19,12 +21,24 @@ onUpdateBook
 }: { 
   selectedBook: bookProps
   onBack: () => void
-  toggleMutation: MutationLike<{ id: string; isAvailable?: boolean }>
+  toggleMutation: MutationLike<{ id: string; isAvailable?: boolean; borrower_id?: string }>
   deleteMutation: MutationLike<string> 
   onDelete: (id: string) => void
   onUpdateBook?: (book: bookProps) => void }) {
 
   const [isAiGenOpen, setIsAiGenOpen] = useState(false);
+  // 현재 로그인한 사용자 정보
+  const currentUser = pb.authStore.model;
+  // 상태 판별 조건 로직
+  const isAvailable = selectedBook.isAvailable; // 대출 가능 여부
+  const isBorrower = currentUser?.id === selectedBook.borrower_id; // 내가 빌린 사람인지 여부
+
+  // 버튼 활성화 조건 제어
+  // 1. 대출 가능한 상태라면 -> 로그인한 누구나 대출 버튼 클릭 가능
+  // 2. 대출 중인 상태라면 -> 빌려 간 사람(isBorrower)만 반납 버튼 클릭 가능
+  const canControl = isAvailable || (!isAvailable && isBorrower);
+
+
 
   return(
         <section className="mt-6 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
@@ -138,24 +152,37 @@ onUpdateBook
 
           {/* 수정_최승헌_5-3 상세 페이지 안에서도 대출 상태 변경 가능 (selectedBook 즉시 반영) */}
           <button
-            onClick={() =>
+            onClick={() => {
+              // 대출할 때는 내 ID를 borrower_id로 지정, 반납할 때는 borrower_id를 비움
+              const nextBorrowerId = isAvailable ? currentUser?.id : "";
+            
               toggleMutation.mutate({
                 id: selectedBook.id,
-                isAvailable: selectedBook.isAvailable,
+                isAvailable: isAvailable,
+                //isAvailable: selectedBook.isAvailable,
+                borrower_id: nextBorrowerId,
               })
-            }
-            disabled={toggleMutation.isPending}
+            }}
+            disabled={toggleMutation.isPending || !currentUser || !canControl}
             className={`mt-8 w-full py-3 rounded-xl font-bold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-              selectedBook.isAvailable
-                ? "bg-green-100 text-green-700 hover:bg-green-200"
-                : "bg-red-100 text-red-700 hover:bg-red-200"
+              !currentUser
+                ? "bg-gray-200 text-gray-500"
+                : !canControl
+                  ? "bg-gray-200 text-gray-400" // 다른 사람이 빌려 가서 권한이 없는 경우 회색 처리
+                  : isAvailable
+                    ? "bg-green-100 text-green-700 hover:bg-green-200"
+                    : "bg-red-100 text-red-700 hover:bg-red-200"
             }`}
           >
-            {toggleMutation.isPending
-              ? "처리 중..."
-              : selectedBook.isAvailable
-                ? "대출하기"
-                : "반납하기"}
+            {!currentUser
+              ? "로그인이 필요합니다"
+              : toggleMutation.isPending
+                ? "처리 중..."
+                : isAvailable
+                  ? "대출하기"
+                  : isBorrower
+                    ? "반납하기"
+                    : "대출 중 (반납 권한 없음)"}
           </button>
         </div>
       </div>

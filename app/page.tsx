@@ -25,14 +25,13 @@ export interface bookProps{
   publisher?:string   // Stinrg or Undefined 
   thumbnail?:string
   isAvailable?:boolean
+  borrower_id?: string;
   bestbook?:boolean
   like_count?:number
   ai_review?:string
   user_id?:string
   created?:string
   updated?:string
-  category?:string
-  sales?: number
   cover?:string
   isbn13?:string
 }
@@ -127,8 +126,8 @@ export default function Home() {
   // 3. 대출 상태 토글 (Update)
   
   const toggleMutation = useMutation({
-    mutationFn: ({ id, isAvailable } : {id:string,isAvailable?:boolean}) =>
-      pb.collection('books').update(id, { isAvailable: !isAvailable }),
+    mutationFn: ({ id, isAvailable, borrower_id } : {id:string,isAvailable?:boolean,borrower_id?:string}) =>
+      pb.collection('books').update(id, { isAvailable: !isAvailable, borrower_id }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['books'] });
       queryClient.invalidateQueries({ queryKey: ['books-dashboard'] });
@@ -142,6 +141,7 @@ export default function Home() {
         return {
           ...prev,
           isAvailable: !variables.isAvailable,
+          borrower_id: variables.borrower_id,
         };
       });
     },
@@ -152,10 +152,13 @@ export default function Home() {
 
       {/* 헤더 영역 */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 pb-6 border-b border-gray-100">
+        
+        <Link href="/" className=" items-center gap-3">
         <div>
           <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 animate-bounce">📚 오승헌의 직박구리<span className='text-red-300'>🔞</span></h1>
           <p className="animate-shine font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-400 via-red-500 to-slate-400  mt-2">그의 은밀한 취미생활....</p>
         </div>
+        </Link>
 
         {/* Buttons / Auth Section */}
         <div className="flex items-center gap-3 self-end md:self-auto">
@@ -212,7 +215,7 @@ export default function Home() {
             onClick={() => setIsManualModalOpen(true)} 
             className="cursor-pointer px-6 py-2 rounded-lg font-bold text-white shadow-lg animate-rapid-blink"
           >
-            + Creator!
+            + Creator
           </button>
         </div>
       </div>
