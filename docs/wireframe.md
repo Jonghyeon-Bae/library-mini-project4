@@ -1,111 +1,102 @@
 # 화면 정의서 (Wireframe)
 
-본 문서는 도서 대출 관리 애플리케이션의 화면 구조와 각 화면에서의 사용자 상호작용 및 데이터 흐름을 정의합니다. 본 사양은 실제 React/Next.js 코드(`app/page.tsx`, `app/components/AddBookModal.tsx`)의 상태 관리와 API 호출 논리를 기반으로 작성되었습니다.
+본 문서는 도서 대출 관리 애플리케이션의 화면 구조와 데이터 흐름을 정의합니다. 본 사양은 실제 React/Next.js 코드를 기반으로 작성되었습니다.
 
 ---
 
 ## 1. 메인 페이지 (Screen 1: Main Page)
 
-메인 페이지는 책장의 도서 목록을 그리드 형태로 시각화하고 대출 현황 차트 및 정렬 기능을 제공하는 기본 뷰입니다. Single Page 구조 내에서 동작합니다.
+애플리케이션의 뼈대가 되는 기본 뷰로, 좌측에는 사이드바, 우측/중앙에는 동적으로 변경되는 뷰 컴포넌트를 렌더링합니다.
 
 ### 1.1 주요 UI 구성 요소
-- **헤더 영역**: 타이틀("📚 오승헌의 직박구리🔞"), 서브타이틀, 그리고 도서 등록 모달을 여는 **[+ 추가]** 버튼
-- **대시보드 차트**: 전체 도서 수 대비 대출 현황을 보여주는 파이 차트 (`DashboardChart`)
-- **정렬 버튼**: 최신순, 오래된 순, 제목순 기준 변경 버튼
-- **도서 카드 그리드**: 각 도서의 썸네일, 강추 표시(별표), 제목, 저자/출판사, 대출 상태 토글 버튼, 삭제 버튼(Card 우측 상단 `×`)
+
+- **헤더 영역**: 
+  - 좌측: 메인 로고 및 타이틀
+  - 우측: 로그인 상태에 따른 동적 버튼 (비로그인: [회원가입] [로그인] | 로그인: [사용자 이름] [마이페이지] [로그아웃]) 및 **[+ Search]**, **[+ Creator]** 버튼
+- **좌측 플로팅 영역**: `RankingSidebar` 컴포넌트가 위치하며 '인기 도서 TOP 10'을 상시 노출
+- **중앙 메인 영역**: `selectedBook` 상태에 따라 아래 두 가지 뷰 중 하나를 교체 렌더링
+  - **도서 목록 뷰 (BookListView)**: 전체 도서 8개 단위 페이징 그리드, 정렬 옵션, 상단 대시보드 차트 포함
+  - **도서 상세 뷰 (BookDetailView)**: 선택된 단일 도서의 썸네일, 저자, 본문 등 상세 정보와 각종 상호작용 액션 버튼 포함
 
 ### 1.2 화면 흐름도 (Flowchart)
 
 ```mermaid
 flowchart TD
-    START([페이지 접속]) --> LOAD[PocketBase 도서 목록 조회<br/>pb.collection.getFullList]
-    LOAD --> RENDER[화면 렌더링: 차트, 정렬 버튼, 도서 카드 그리드]
+    START([페이지 접속]) --> HEADER[로그인 상태 확인 및 헤더 렌더링]
+    HEADER --> RENDER_SIDEBAR[RankingSidebar 렌더링]
+    HEADER --> CHECK_SELECTED{selectedBook<br/>상태 확인}
 
-    %% 정렬 변경 흐름
-    RENDER -->|정렬 버튼 클릭| SORT[sortOption 상태 변경<br/>-created / created / title]
-    SORT --> LOAD
+    %% 뷰 스위칭
+    CHECK_SELECTED -->|null| RENDER_LIST[BookListView 렌더링<br/>페이징 목록 및 대시보드]
+    CHECK_SELECTED -->|도서 객체| RENDER_DETAIL[BookDetailView 렌더링<br/>선택 도서 상세 정보]
 
-    %% 대출 상태 토글 흐름
-    RENDER -->|대출 버튼 클릭| TOGGLE[isAvailable 반전 PATCH 요청<br/>pb.collection.update]
-    TOGGLE -->|성공| REFRESH[Query Client Invalidate<br/>도서 목록 갱신]
-    REFRESH --> LOAD
+    %% 리스트 뷰 인터랙션
+    RENDER_LIST -->|도서 카드 클릭| SET_SELECTED[선택 도서 상태 업데이트]
+    SET_SELECTED --> RENDER_DETAIL
 
-    %% 도서 삭제 흐름
-    RENDER -->|카드 우측 상단 '×' 클릭| CONFIRM{confirm<br/>'정말 삭제하시겠습니까?'}
-    CONFIRM -->|확인| DELETE[PocketBase 삭제 요청<br/>pb.collection.delete]
-    CONFIRM -->|취소| RENDER
-    DELETE -->|성공| REFRESH
-
-    %% 모달 오픈 흐름
-    RENDER -->|'+ 추가' 버튼 클릭| OPEN_MODAL[isModalOpen 상태를 true로 설정]
-    OPEN_MODAL --> MODAL_VIEW([도서 검색 모달 화면으로 이동])
+    %% 상세 뷰 인터랙션
+    RENDER_DETAIL -->|대출 토글| TOGGLE[isAvailable PATCH API]
+    RENDER_DETAIL -->|삭제 버튼| DELETE[도서 DELETE API]
+    RENDER_DETAIL -->|좋아요 버튼| LIKE[likes 컬렉션 추가/삭제]
+    RENDER_DETAIL -->|목록으로 이동| CLEAR_SELECTED[selectedBook = null]
+    CLEAR_SELECTED --> RENDER_LIST
 ```
 
 ---
 
-## 2. 도서 검색 모달 (Screen 2: Book Search Modal)
+## 2. 도서 검색 및 등록 모달 (Screen 2: Book Registration Modals)
 
-도서 등록을 위해 카카오 책 검색 API를 호출하고 결과를 확인하여 PocketBase에 등록하는 오버레이 모달 창입니다.
+도서 등록을 위한 두 가지 모달 뷰입니다.
+- **Search 모달**: 알라딘 API를 호출하여 도서를 검색 및 등록
+- **Creator 모달**: 수동으로 도서 정보를 기입하여 등록
 
-### 2.1 주요 UI 구성 요소
-- **모달 헤더**: 타이틀("도서 검색 및 등록") 및 우측 상단 닫기 **[X]** 버튼
-- **검색 창**: 키워드 입력 필드 (`input`), 검색 아이콘 버튼 (`Search`)
-- **결과 목록 영역**: 검색된 도서들의 표지(썸네일), 제목, 저자 정보 및 우측 **[등록]** 버튼
-
-### 2.2 화면 흐름도 (Flowchart)
+### 2.1 검색 모달 화면 흐름도 (Search Flow)
 
 ```mermaid
 flowchart TD
-    START([모달 활성화: isModalOpen=true]) --> RENDER[검색 모달 창 노출]
-
-    %% 닫기 흐름
-    RENDER -->|'X' 버튼 클릭| CLOSE[onClose 호출<br/>모달 비활성화]
-    CLOSE --> EXIT([메인 페이지 뷰로 복귀])
-
-    %% 검색 흐름
-    RENDER -->|키워드 입력 후 Enter 또는 검색 버튼 클릭| SEARCH_CHECK{검색어 존재 여부}
-    SEARCH_CHECK -->|비어 있음| ALERT[alert: '검색어를 입력하세요!']
-    ALERT --> RENDER
+    START([메인 헤더의 '+ Search' 버튼 클릭]) --> RENDER[검색 모달 창 노출]
     
-    SEARCH_CHECK -->|입력 완료| API_CALL[카카오 책 검색 API 호출<br/>searchBookFromKakao]
-    API_CALL --> SET_RESULTS[results 상태에 검색 데이터 저장]
-    SET_RESULTS --> RENDER_RESULTS{검색 결과 렌더링<br/>results.map}
-
-    %% 빈 배열 상태
-    RENDER_RESULTS -->|결과 없음: 빈 배열 []| EMPTY_VIEW[결과 영역에 아무것도 노출하지 않음<br/>*경고창이나 안내문 없이 코드대로 빈 화면 유지]
-    EMPTY_VIEW --> RENDER
-
-    %% 결과 목록에서 등록 흐름
-    RENDER_RESULTS -->|결과 존재: 각 도서의 '등록' 버튼 클릭| ADD_DB[PocketBase 저장 요청<br/>pb.collection.create]
-    ADD_DB -->|성공| SUCCESS_ALERT[alert: '도서가 등록되었습니다!']
-    SUCCESS_ALERT --> UPDATE_QUERY[Query Client Invalidate<br/>메인 도서 목록 갱신]
-    UPDATE_QUERY --> CLOSE
+    RENDER -->|키워드 입력 후 엔터/검색 버튼| SEARCH_CHECK{키워드 존재 확인}
+    SEARCH_CHECK -->|있음| API_CALL[알라딘 상품 검색 API 호출<br/>searchBookFromAladin]
+    API_CALL --> SET_RESULTS[results 상태에 검색 데이터 저장 및 렌더링]
+    
+    SET_RESULTS -->|'등록' 버튼 클릭| METRICS[알라딘 상세 지표 조회<br/>lookupBookMetricsFromAladin]
+    METRICS --> ADD_DB[PocketBase 도서 생성 API 호출]
+    ADD_DB -->|성공| INVALIDATE[도서 목록 데이터 Invalidate]
+    INVALIDATE --> CLOSE([모달 닫기])
 ```
 
 ---
 
-## 3. AI 표지 이미지 생성 (Screen 3: AI Cover Generator) `[미구현 / 계획]`
+## 3. 인증 관련 모달 및 페이지 (Screen 3: Auth)
 
-본 화면 및 관련 동작은 현재 Next.js 소스 코드에 구현되어 있지 않으며, 기획 사양(Usecase) 단계의 설계입니다.
+### 3.1 로그인 / 회원가입 모달
 
-### 3.1 주요 사양 (기획 설계)
-- **진입 경로**: 메인 페이지 도서 카드의 '이미지 생성' 액션 링크 클릭
-- **동작 방식**: 도서의 제목과 상세 내용을 결합하여 GPT Image-2 API에 전송
-- **결과 반영**: 생성된 이미지(1024×1536 해상도) 주소를 PocketBase `books` 컬렉션의 `thumbnail`에 반영하고 화면을 리렌더링
+- 메인 화면 헤더에서 접근 가능한 모달창.
+- 이메일과 비밀번호(회원가입 시 이름 추가)를 입력받아 PocketBase Auth API 호출.
+- 성공 시 쿠키에 인증 정보 동기화 후 모달을 닫고 UI 갱신.
 
-### 3.2 화면 흐름도 (Flowchart)
+### 3.2 마이페이지 (`/me`)
+
+- 로그인한 사용자만 접근 가능한 별도 라우트.
+- 상단에 사용자 프로필 정보 및 기본 통계 노출.
+- 하단에 해당 사용자가 등록한(`user_id`) 도서 목록만 필터링하여 페이징 그리드 노출.
+
+---
+
+## 4. AI 표지 이미지 생성 모달 (Screen 4: AI Generator)
+
+도서 상세 뷰에서 AI로 표지 이미지를 재설정하는 인터페이스입니다.
+
+### 4.1 화면 흐름도 (Flowchart)
 
 ```mermaid
 flowchart TD
-    START([이미지 생성 클릭]) --> CHECK{도서 정보 분석}
-    CHECK -->|정보 부족| ERR[alert: 생성 불가 정보 부족]
-    ERR --> EXIT([메인 페이지로 복귀])
+    START([상세 뷰에서 'AI 표지 다시 그리기' 클릭]) --> RENDER[AI 썸네일 생성기 모달 노출]
     
-    CHECK -->|정보 충분| API_GEN[GPT Image-2 API 호출<br/>1024x1536 이미지 생성]
-    API_GEN -->|성공| SAVE_DB[PocketBase thumbnail 필드 업데이트]
-    API_GEN -->|실패/오류| ERR_KEEP[기존 썸네일 주소 유지]
+    RENDER -->|생성하기 버튼 클릭| API_GEN[Next.js API 라우트 호출<br/>OpenAI DALL-E 통신]
+    API_GEN -->|성공 / 파일 저장| SAVE_DB[DB thumbnail에 로컬 주소 업데이트]
     
-    SAVE_DB --> REFRESH[도서 목록 갱신]
-    REFRESH --> EXIT
-    ERR_KEEP --> EXIT
+    SAVE_DB --> REFRESH[도서 상세 정보 및 목록 데이터 갱신]
+    REFRESH --> CLOSE([결과 확인 후 모달 닫기])
 ```
