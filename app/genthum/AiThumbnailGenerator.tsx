@@ -1,12 +1,13 @@
 'use client';
-
-// 추가_최승헌_6-1 AI 표지 이미지 자동 생성 모달 컴포넌트 추가
+// "library-mini-project4\public\covers" 생성된 표지 이미지는 해당 경로에 저장되고 해당 주소를 db에넣습니다
+// AI 표지 이미지 자동 생성 모달 컴포넌트 추가
 import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
+// 수정 AI 느낌을 줄이기 위해 Sparkles 아이콘을 Palette 아이콘으로 교체
 import { pb } from '../lib/pocketbase';
 import { bookProps } from '../page';
-import { Sparkles, X, Check, RefreshCw, Undo, Download, Image as ImageIcon } from 'lucide-react';
+import { Palette, X, Check, RefreshCw, Undo, Download, Image as ImageIcon } from 'lucide-react';
 
 interface AiThumbnailGeneratorProps {
   isOpen: boolean;
@@ -17,39 +18,46 @@ interface AiThumbnailGeneratorProps {
 
 const STYLE_PRESETS = [
   {
-    id: 'minimalist',
-    name: '미니멀리스트',
-    promptPart: 'clean minimalist graphic book cover design, simple geometric shapes, flat vector illustration, bold typography, aesthetic negative space, elegant layout',
+    id: 'modern_typography',
+    name: '모던 타이포그래피 (자기계발/에세이)',
+    // 설명: 깔끔한 배경에 굵고 임팩트 있는 글씨체 위주. 최근 한국 서점가의 베스트셀러 트렌드.
+    promptPart: 'modern minimalist book cover design, bold sans-serif typography centered, solid pastel or monochrome background, clean layout, high-end editorial style, no clutter, professional graphic design'
   },
   {
-    id: 'fantasy',
-    name: '판타지',
-    promptPart: 'magical fantasy book cover illustration, ethereal lighting, mysterious glowing elements, dramatic clouds, highly detailed digital painting, cinematic composition',
+    id: 'literary_fiction',
+    name: '문학적 감성 (소설/문학)',
+    // 설명: 추상적인 일러스트나 은유적인 이미지, 여백의 미를 강조. 톤다운된 색상 사용.
+    promptPart: 'literary fiction book cover, abstract symbolic illustration, muted earth tones, textured paper background, elegant serif font, artistic composition, sophisticated and contemplative vibe, soft lighting'
   },
   {
-    id: 'scifi',
-    name: '사이버펑크',
-    promptPart: 'futuristic cyberpunk book cover, neon holograms, high-tech cities, dark background with blue and magenta glow, synthwave aesthetic, detailed cybernetic elements',
+    id: 'thriller_noir',
+    name: '스릴러/미스터리 (범죄/추리)',
+    // 설명: 강렬한 대비, 그림자, 붉은색/검정색 계열. 긴장감을 주는 시각 요소.
+    promptPart: 'psychological thriller book cover, dark noir atmosphere, high contrast shadows, silhouette of a figure, red and black color scheme, gritty texture, suspenseful mood, cinematic lighting, mysterious elements'
   },
   {
-    id: 'watercolor',
-    name: '감성 수채화',
-    promptPart: 'soft watercolor book cover illustration, gentle color gradients, artistic paint splatters, hand-drawn sketch lines, warm emotional vibe, minimalist background',
+    id: 'fantasy_epic',
+    name: '판타지/무협 (대서사시)',
+    // 설명: 디테일한 캐릭터나 배경 묘사, 마법진, 웅장한 스케일. 디지털 페인팅 느낌.
+    promptPart: 'epic fantasy book cover art, highly detailed digital painting, magical glowing artifacts, dramatic sky, heroic character pose, intricate details, vibrant colors, cinematic composition, unreal engine render style'
   },
   {
-    id: 'mystery',
-    name: '미스터리 스릴러',
-    promptPart: 'dark gothic mystery book cover, noir silhouette, foggy atmosphere, moody shadows, vintage texture, dramatic lighting, suspenseful cover design',
+    id: 'romance_webtoon',
+    name: '로맨스/웹툰 스타일 (청춘/연애)',
+    // 설명: 부드러운 색감, 인물 중심의 일러스트, 꽃이나 빛나는 효과. 웹툰 커버 같은 감성.
+    promptPart: 'romantic novel book cover, soft webtoon art style, cute couple illustration or single attractive character, pastel pink and blue gradients, floral elements, dreamy atmosphere, sparkling lights, emotional and sweet vibe'
   },
   {
-    id: 'classic',
-    name: '명화/유화',
-    promptPart: 'classical oil painting style book cover, rich textures, fine art, Rembrandt lighting, deep colors, dramatic chiaroscuro, majestic composition',
+    id: 'business_infographic',
+    name: '비즈니스/경제 (실용서)',
+    // 설명: 신뢰감을 주는 네이비/화이트 계열, 그래프나 아이콘 등 기하학적 요소 활용.
+    promptPart: 'professional business book cover, clean infographic elements, geometric shapes, navy blue and white color palette, trustworthy and authoritative look, modern corporate style, sharp vectors, minimal icons'
   },
   {
-    id: 'cozy',
-    name: '힐링 일러스트',
-    promptPart: 'cute cozy book cover illustration, warm color palette, whimsical hand-drawn elements, children book illustration style, playful characters, soft textures',
+    id: 'retro_vintage',
+    name: '레트로/빈티지 (취미/문화)',
+    // 설명: 70-90년대 감성, 낡은 질감, 레터링 폰트. 힙한 감성을 원할 때 유용.
+    promptPart: 'vintage retro book cover design, 1970s aesthetic, grainy texture, warm orange and brown tones, retro typography, collage art style, nostalgic mood, analog feel, worn paper effect'
   }
 ];
 
@@ -91,11 +99,11 @@ export default function AiThumbnailGenerator({ isOpen, onClose, book, onUpdateSu
     let interval: NodeJS.Timeout;
     if (isGenerating) {
       const steps = [
-        '도서 정보 분석 중...',
-        '스타일 프리셋 결합 중...',
-        '표지 이미지 생성 중...',
-        '세밀한 디테일 보정 중...',
-        '마무리 화질 업스케일링 중...'
+        '책 내용 과몰입 중... (진심모드)',
+        '표지 구도 스케치 중... ',
+        'AI 화가 열일중...',
+        '디테일 장인 각성 중...',
+        '마무리 미모 필터 씌우는 중'
       ];
       interval = setInterval(() => {
         setLoadingStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
@@ -191,11 +199,11 @@ export default function AiThumbnailGenerator({ isOpen, onClose, book, onUpdateSu
   };
 
   const stepsText = [
-    '도서 정보 분석 중...',
-    '스타일 프리셋 결합 중...',
-    '표지 이미지 생성 중...',
-    '세밀한 디테일 보정 중...',
-    '마무리 화질 업스케일링 중...'
+    '책 내용 과몰입 중... (진심모드)',
+    '표지 구도 스케치 중... ',
+    'AI 화가 열일중...',
+    '디테일 장인 각성 중...',
+    '마무리 미모 필터 씌우는 중'
   ];
 
   return (
@@ -206,7 +214,7 @@ export default function AiThumbnailGenerator({ isOpen, onClose, book, onUpdateSu
         <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="p-2 rounded-lg bg-slate-800 text-white dark:bg-slate-700">
-              <Sparkles size={20} />
+              <Palette size={20} />
             </div>
             <div>
               <h2 className="font-extrabold text-lg text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
@@ -265,7 +273,7 @@ export default function AiThumbnailGenerator({ isOpen, onClose, book, onUpdateSu
               <div className="absolute inset-0 bg-slate-900/90 backdrop-blur-sm flex flex-col justify-center items-center text-center p-6 z-20">
                 <div className="relative mb-6">
                   <div className="w-20 h-20 rounded-full border-4 border-slate-300 border-t-indigo-600 animate-spin" />
-                  <Sparkles size={28} className="absolute inset-0 m-auto text-indigo-400" />
+                  <Palette size={28} className="absolute inset-0 m-auto text-indigo-400 animate-pulse" />
                 </div>
                 
                 <h4 className="font-extrabold text-white text-base transition-all duration-300">
@@ -400,7 +408,7 @@ export default function AiThumbnailGenerator({ isOpen, onClose, book, onUpdateSu
                 disabled={isGenerating}
                 className="flex-1 cursor-pointer py-3 px-4 bg-slate-800 hover:bg-slate-900 disabled:opacity-50 text-white font-extrabold text-sm rounded-xl transition flex items-center justify-center gap-2"
               >
-                {isGenerating ? <RefreshCw size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                {isGenerating ? <RefreshCw size={16} className="animate-spin" /> : <Palette size={16} />}
                 {isGenerating ? '표지 생성 중...' : '표지 생성하기'}
               </button>
 

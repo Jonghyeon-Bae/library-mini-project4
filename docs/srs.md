@@ -19,7 +19,7 @@
 
 - 데이터베이스로 PocketBase 사용
 - 데이터 조회 및 조작은 PocketBase의 RESTful API (CRUD) 통신 규칙 준수
-- 초기 데이터는 kakao api를 통해 구축
+- 초기 데이터는 aladin api를 통해 구축
 
 ---
 

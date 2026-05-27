@@ -1,7 +1,7 @@
 'use client';
 
 import { memo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { bookProps } from '../page';
 import { Heart, Trophy, X, Award, Loader2 } from 'lucide-react';
 import { pb } from '../lib/pocketbase';
@@ -27,7 +27,26 @@ const RankingSidebar = memo(function RankingSidebar({ onBookSelect }: RankingSid
       });
       return records.slice(0, 10);
     },
-    staleTime: 1000 * 60, // 1분 캐시
+    staleTime: 0, // 1분 캐시
+  });
+
+  // 실시간 반영: PocketBase realtime으로 변경 발생 시 쿼리 무효화하여 최신 데이터 재조회
+  const queryClient = useQueryClient();
+  useState(() => {
+    let unsubscribe: any;
+    try {
+      unsubscribe = pb.collection('books').subscribe('*', () => {
+        queryClient.invalidateQueries({ queryKey: ['books-ranking'] });
+      });
+    } catch (e) {
+      console.error(e)
+      // 구독 실패 시 무시
+    }
+    return () => {
+      if (unsubscribe && typeof unsubscribe.unsubscribe === 'function') {
+        unsubscribe.unsubscribe();
+      }
+    };
   });
   
   // ranked는 useQuery로부터 받아온 전체 도서 기준의 랭킹 목록입니다.

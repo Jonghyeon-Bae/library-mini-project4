@@ -32,6 +32,8 @@ export interface bookProps{
   user_id?:string
   created?:string
   updated?:string
+  category?:string
+  sales?: number
   cover?:string
   isbn13?:string
 }
@@ -206,13 +208,13 @@ export default function Home() {
             onClick={() => setIsModalOpen(true)} 
             className="cursor-pointer px-6 py-2 rounded-lg font-bold text-white shadow-lg animate-rapid-blink"
           >
-            + 추가(API)
+            + Search!
           </button>
           <button 
             onClick={() => setIsManualModalOpen(true)} 
             className="cursor-pointer px-6 py-2 rounded-lg font-bold text-white shadow-lg animate-rapid-blink"
           >
-            + 추가(Manual)
+            + Creator!
           </button>
         </div>
       </div>

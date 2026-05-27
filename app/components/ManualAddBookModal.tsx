@@ -13,7 +13,6 @@ interface ManualAddBookModalProps {
 interface NewBookProps {
   id?: string;
   title?: string;
-  authors?: string;
   author?: string;
   publisher?: string;
   thumbnail?: string;
@@ -191,31 +190,6 @@ export default function ManualAddBookModal({ isOpen, onClose }: ManualAddBookMod
               className="w-full border border-gray-300 p-2 rounded outline-none"
               placeholder="예: 소설, 비소설, 자기계발 등"
             />
-          </div>
-
-          {/* 썸네일 URL */}
-          <div>
-            <label className="block text-sm font-semibold mb-2">표지 이미지 URL</label>
-            <input
-              type="text"
-              name="thumbnail"
-              value={formData.thumbnail || ''}
-              onChange={handleChange}
-              className="w-full border border-gray-300 p-2 rounded outline-none"
-              placeholder="표지 이미지의 URL을 입력하세요"
-            />
-            {formData.thumbnail && (
-              <div className="mt-2">
-                <img
-                  src={formData.thumbnail}
-                  alt="미리보기"
-                  className="w-20 h-28 object-cover rounded border"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = 'https://via.placeholder.com/80x112?text=No+Image';
-                  }}
-                />
-              </div>
-            )}
           </div>
 
           {/* 설명 */}

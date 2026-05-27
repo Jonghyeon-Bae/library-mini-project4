@@ -1,7 +1,9 @@
 <!-- BEGIN:nextjs-agent-rules -->
+
 # This is NOT the Next.js you know
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+
 <!-- END:nextjs-agent-rules -->
 
 ---
@@ -16,9 +18,11 @@ Read `CLAUDE.md` first. This file adds agent-specific rules on top of it.
 
 1. **Read the Next.js docs that ship with this repo.**
    This project uses Next.js 16 with React 19 — both are likely newer than your training cutoff.
+
    ```
    node_modules/next/dist/docs/
    ```
+
    Open and read the relevant guide before using any Next.js API.
 
 2. **Check `docs/` for existing specs.**
@@ -66,11 +70,11 @@ useQuery({ queryKey: ['books' + Date.now()], queryFn: ... })
 
 ```ts
 // Always
-import { pb } from '@/lib/pocketbase';
+import { pb } from "@/lib/pocketbase";
 
 // Never
-import PocketBase from 'pocketbase';
-const pb = new PocketBase('http://127.0.0.1:8090'); // ← creates a second instance
+import PocketBase from "pocketbase";
+const pb = new PocketBase("http://127.0.0.1:8090"); // ← creates a second instance
 ```
 
 Auth is stored in a cookie. To read current user: `pb.authStore.model`.
@@ -83,8 +87,13 @@ PocketBase stores it as `author` (string, comma-joined).
 Always join before saving:
 
 ```ts
-author: book.authors?.join(', ')
+author: book.authors?.join(", ");
 ```
+
+### File & Asset Storage Rules
+
+- **Generated Assets**: Do not use external storage services for generated assets (e.g., AI thumbnails from DALL-E) unless explicitly requested. Save them as local files inside the `public/` directory (e.g., `public/covers/`).
+- **Database Paths**: Never store absolute local paths or `public/` prefixes in the database. Store only the relative path (e.g., `/covers/filename.png`) so Next.js can serve it directly via `<img>` or `<Image>`.
 
 ### Comments / Commit Style
 
@@ -98,15 +107,26 @@ Follow the team's established tagging style:
 
 ---
 
+## UI & Styling Conventions
+
+- **Tailwind Only**: Do not use inline styles (`style={{...}}`) or CSS modules unless absolutely necessary. Rely on Tailwind CSS utility classes.
+- **Icons**: Strictly use **`lucide-react`**. Do not introduce other icon libraries.
+- **Design Language**: Maintain the project's modern, premium aesthetic.
+  - Use **glassmorphism** for floating elements or modals (e.g., `bg-white/90 backdrop-blur-md`).
+  - Use **micro-animations** for interactive elements (e.g., `transition-all duration-200 hover:scale-105 active:scale-95`).
+  - Utilize **gradients** where appropriate to highlight primary actions (e.g., `bg-gradient-to-r from-indigo-500 to-purple-600`).
+
+---
+
 ## File Creation Rules
 
-| Situation | Where to put it |
-|---|---|
-| New page | `app/<route>/page.tsx` |
-| New reusable component | `app/components/<Name>.tsx` |
-| New API utility / wrapper | `app/lib/<name>.ts` |
-| New Next.js API route | `app/api/<name>/route.ts` |
-| New docs | `docs/<name>.md` |
+| Situation                 | Where to put it             |
+| ------------------------- | --------------------------- |
+| New page                  | `app/<route>/page.tsx`      |
+| New reusable component    | `app/components/<Name>.tsx` |
+| New API utility / wrapper | `app/lib/<name>.ts`         |
+| New Next.js API route     | `app/api/<name>/route.ts`   |
+| New docs                  | `docs/<name>.md`            |
 
 Always use `'use client'` at the top of any file that uses React state, effects, or browser APIs.
 Omit it for pure server components or utility modules.
@@ -115,12 +135,11 @@ Omit it for pure server components or utility modules.
 
 ## WIP Areas — Proceed with Caution
 
-| Area | Status | Notes |
-|---|---|---|
-| `app/genthum/page.tsx` | WIP | AI thumbnail generation — design not finalized |
+| Area                       | Status        | Notes                                              |
+| -------------------------- | ------------- | -------------------------------------------------- |
+| `app/genthum/page.tsx`     | Partial WIP   | AI thumbnail generation works, saves to `/covers/` |
 | `AddBookModal` `handleAdd` | Commented out | Aladin integration incomplete; do not refactor yet |
-| `app/api/aladin/` | Partial | JSONP proxy — do not change response format |
-| `ai_review` field | Schema exists | Generation flow not implemented |
+| `app/api/aladin/`          | Partial       | JSONP proxy — do not change response format        |
 
 Do not refactor WIP code unless the task explicitly asks for it.
 

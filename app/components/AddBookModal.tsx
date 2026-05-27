@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { pb } from '../lib/pocketbase';
 import { searchBookFromKakao } from '../lib/kakaoApi';
 import { searchBookFromAladin, lookupBookMetricsFromAladin } from '../lib/aladinApi';
-import { Search, X, Clock, Loader2 } from 'lucide-react';
+import { Search, X, Clock, Loader2, Sparkles, RefreshCw } from 'lucide-react';
 import { bookProps } from '../page';
 
 interface AddBookModalProps{
@@ -16,7 +16,7 @@ interface AddBookModalProps{
 interface NewBookProps{
   id?:string
   title?:string
-  authors?:string
+  author?:string
   publisher?:string
   thumbnail?:string
   isAvailable?:boolean
@@ -36,6 +36,10 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
   // 현재 상세 지표를 조회/등록 중인 아이템의 인덱스 상태 관리 (버튼 로딩 처리용)
   const [registeringIdx, setRegisteringIdx] = useState<number | null>(null);
 
+  // [AI 추천 추가] AI 추천 결과와 로딩 상태를 관리하는 State 추가
+  const [aiRecommendations, setAiRecommendations] = useState<string[]>([]);
+  const [isAiLoading, setIsAiLoading] = useState(false);
+
   // 현재 로그인한 유저 정보 가져오기
   const currentUser = pb.authStore.model;
 
@@ -51,6 +55,35 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
 
   // 불러온 데이터에서 items 배열만 추출 (없으면 빈 배열)
   const recentSearches = historyData?.items || [];
+
+  // [AI 추천 추가] AI 추천 검색어를 백엔드 API에서 가져오는 함수 추가
+  const getAiRecommendations = async () => {
+    if (recentSearches.length === 0) return alert('검색 기록이 부족합니다!');
+    
+    setIsAiLoading(true);
+    try {
+      // 최근 검색어 배열에서 최대 5개의 키워드만 추출하여 서버로 전송
+      const allKeywords = recentSearches.map((item) => item.keyword);
+      const targetKeywords = allKeywords.slice(0, 5);
+
+      const response = await fetch('/api/recommend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keywords: targetKeywords }),
+      });
+
+      const data = await response.json();
+      
+      if (data.recommendations) {
+        setAiRecommendations(data.recommendations);
+      }
+    } catch (error) {
+      console.error('AI 추천 에러:', error);
+      alert('추천을 불러오지 못했습니다.');
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
 
   // DB에 저장하는 Mutation
   const addMutation = useMutation({
@@ -105,7 +138,7 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
       // 2. 확보된 데이터와 자동 판별된 추천 여부(isRecommended)를 결합하여 DB에 전송
       addMutation.mutate({
         title: book.title, 
-        authors: book.author, // 알라딘은 저자 정보가 문자열로 제공됨
+        author: book.author, // 알라딘은 저자 정보가 문자열로 제공됨
         publisher: book.publisher, 
         thumbnail: book.cover, // 알라딘의 이미지 키값은 cover
         isAvailable: true, 
@@ -146,26 +179,81 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
           <button onClick={() => handleSearch(keyword)} className="bg-blue-600 text-white px-4 rounded"><Search size={18}/></button>
         </div>
 
+        {/* [AI 추천 추가] 최근 검색어 UI를 '내가 찾은 검색어'와 'AI 추천' 구역으로 분리 확장했습니다. */}
         {recentSearches.length > 0 && (
-          <div className="px-4 py-3 bg-gray-50 border-b flex items-center gap-3 overflow-x-auto">
-            <div className="flex items-center text-sm font-medium text-gray-500 shrink-0 gap-1">
-              <Clock size={14} />
-              <span>최근 검색</span>
+          <div className="px-4 py-4 bg-gray-50 border-b flex flex-col gap-5 shrink-0">
+            
+            {/* 1. 내가 찾은 검색어 (유저 데이터) */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center text-sm font-bold text-gray-700 gap-1.5">
+                <Clock size={15} />
+                <span>내가 찾은 검색어</span>
+              </div>
+              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                {recentSearches.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setKeyword(item.keyword);
+                      handleSearch(item.keyword);
+                    }}
+                    className="px-3 py-1.5 bg-white border border-gray-200 text-sm rounded-full text-gray-600 hover:border-blue-500 hover:text-blue-600 transition whitespace-nowrap shadow-sm"
+                  >
+                    {item.keyword}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="flex gap-2">
-              {recentSearches.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    setKeyword(item.keyword);    // 인풋창 값 변경
-                    handleSearch(item.keyword); // 즉시 검색 실행
-                  }}
-                  className="px-3 py-1 bg-white border border-gray-200 text-sm rounded-full text-gray-600 hover:border-blue-500 hover:text-blue-600 transition whitespace-nowrap shadow-sm"
+
+            {/* 2. AI 맞춤 추천 영역 */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center text-sm font-bold text-indigo-600 gap-1.5">
+                  <Sparkles size={15} />
+                  <span>AI 맞춤 연관 검색어</span>
+                </div>
+                
+                {/* 💡 수정됨: 조건부 렌더링을 없애고 항상 보이되 텍스트와 아이콘이 바뀌도록 변경 */}
+                <button 
+                  onClick={getAiRecommendations}
+                  disabled={isAiLoading}
+                  className="text-xs bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-md hover:bg-indigo-200 transition font-medium disabled:opacity-50 flex items-center gap-1.5"
                 >
-                  {item.keyword}
+                  {isAiLoading ? (
+                    <>
+                      <Loader2 size={12} className="animate-spin" />
+                      분석 중...
+                    </>
+                  ) : aiRecommendations.length > 0 ? (
+                    <>
+                      <RefreshCw size={12} />
+                      다시 받기
+                    </>
+                  ) : (
+                    '추천어 받기'
+                  )}
                 </button>
-              ))}
+              </div>
+
+              {/* AI 추천 결과 렌더링 */}
+              {aiRecommendations.length > 0 && (
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  {aiRecommendations.map((rec, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setKeyword(rec);
+                        handleSearch(rec);
+                      }}
+                      className="px-3 py-1.5 bg-indigo-50 border border-indigo-200 text-sm font-medium rounded-full text-indigo-700 hover:bg-indigo-600 hover:text-white transition whitespace-nowrap shadow-sm"
+                    >
+                      {rec}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
+            
           </div>
         )}
 
