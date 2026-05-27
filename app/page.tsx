@@ -12,7 +12,6 @@ import RankingSidebar from './components/RankingSidebar';
 import Link from 'next/link';
 import BookDetailView from './components/BookDetailView';
 import BookListView from './components/BookListView';
-import { Manuale } from 'next/font/google';
 import ManualAddBookModal from './components/ManualAddBookModal';
 
 
@@ -149,7 +148,6 @@ export default function Home() {
 
   return (
     <main className="max-w-5xl mx-auto p-8">
-
       {/* 헤더 영역 */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 pb-6 border-b border-gray-100">
         
@@ -209,13 +207,13 @@ export default function Home() {
             onClick={() => setIsModalOpen(true)} 
             className="cursor-pointer px-6 py-2 rounded-lg font-bold text-white shadow-lg animate-rapid-blink"
           >
-            + Search!
+            Search!
           </button>
           <button 
             onClick={() => setIsManualModalOpen(true)} 
             className="cursor-pointer px-6 py-2 rounded-lg font-bold text-white shadow-lg animate-rapid-blink"
           >
-            + Creator
+            CreatorMode!
           </button>
         </div>
       </div>

@@ -26,6 +26,7 @@ interface NewBookProps{
   contents?:string // 알라딘의 description을 저장할 필드 추가(장문경)
   user_id?:string
   ai_review?: string; //AI 리뷰 필드 추가 (장문경)
+  isbn13?:string
 }
 
 export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
@@ -98,6 +99,20 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
     },
   });
 
+  // 최승헌 추가 isbn13 기준 중복 확인 함수
+  const checkDuplicateIsbn13 = async (isbn13?: string) => {
+    const targetIsbn13 = isbn13?.trim();
+
+    if (!targetIsbn13) return false;
+
+    const result = await pb.collection('books').getList(1, 1, {
+      filter: `isbn13 = "${targetIsbn13.replace(/"/g, '\\"')}"`,
+    });
+
+    return result.totalItems > 0;
+  };
+  // 추가 완료
+
   // 2. 검색 실행 함수 (태그 클릭 시 즉시 검색을 위해 매개변수 분리)
   const handleSearch = async (targetKeyword: string) => {
     if (!targetKeyword.trim()) return alert('검색어를 입력하세요!');
@@ -135,8 +150,16 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
     setRegisteringIdx(idx); // 현재 등록 중인 버튼 로딩 활성화
 
     try {
-      // 1. 가져온 isbn13을 이용해 상품 상세 조회 API 호출 (평점, 판매지수 확보)
-      const metrics = await lookupBookMetricsFromAladin(book.isbn13);
+        // 추가_최승헌 등록 전 DB에 같은 isbn13의 책이 있는지 확인
+        const isDuplicate = await checkDuplicateIsbn13(book.isbn13);
+
+        if (isDuplicate) {
+          alert('이미 등록된 책입니다.');
+          return;
+        }
+        // 추가완료_최승헌
+        // 1. 가져온 isbn13을 이용해 상품 상세 조회 API 호출 (평점, 판매지수 확보)
+        const metrics = await lookupBookMetricsFromAladin(book.isbn13);
 
       // 2. 확보된 데이터와 자동 판별된 추천 여부(isRecommended)를 결합하여 DB에 전송
       addMutation.mutate({
@@ -144,6 +167,7 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
         author: book.author, // 알라딘은 저자 정보가 문자열로 제공됨
         publisher: book.publisher, 
         thumbnail: book.cover, // 알라딘의 이미지 키값은 cover
+        isbn13: book.isbn13, // 도서 고유값 isbn13
         isAvailable: true, 
         bestbook: metrics.isRecommended, // ➔ 자동 판별된 시스템 추천 여부 바인딩 (리뷰 8.5↑ OR 판매지수 15000↑)
         category: metrics.categoryName,  // 상세 조회로 가져온 카테고리 정보
@@ -153,6 +177,7 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
         ai_review: metrics.isRecommended 
           ? `[자동 추천] 평점 ${metrics.customerReviewRank}점, 판매지수 ${metrics.salesPoint}점의 검증된 우수 명작입니다.` 
           : `평점 ${metrics.customerReviewRank}점의 서재 보관 도서입니다.`
+        
       });
 
     } catch (error) {
