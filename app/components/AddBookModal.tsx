@@ -16,7 +16,7 @@ interface AddBookModalProps{
 interface NewBookProps{
   id?:string
   title?:string
-  authors?:string
+  author?:string
   publisher?:string
   thumbnail?:string
   isAvailable?:boolean
@@ -105,7 +105,7 @@ export default function AddBookModal({ isOpen, onClose }:AddBookModalProps) {
       // 2. 확보된 데이터와 자동 판별된 추천 여부(isRecommended)를 결합하여 DB에 전송
       addMutation.mutate({
         title: book.title, 
-        authors: book.author, // 알라딘은 저자 정보가 문자열로 제공됨
+        author: book.author, // 알라딘은 저자 정보가 문자열로 제공됨
         publisher: book.publisher, 
         thumbnail: book.cover, // 알라딘의 이미지 키값은 cover
         isAvailable: true, 
