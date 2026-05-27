@@ -1,7 +1,7 @@
-﻿📚 Library Mini Project 4: 오승헌의 직박구리 (Personal Library Manager)
+﻿📚 Library Mini Project 4: 5조의 도서관
 Aivle 9th, Mini Project 4
  개인 서재를 디지털화하여 체계적으로 관리할 수 있는 모던 웹 애플리케이션입니다
-. Kakao 책 검색 API를 통해 손쉽게 도서 메타데이터를 불러오고, 내 서재의 도서 보유 현황과 대출 상태를 한눈에 파악할 수 있는 대시보드를 제공합니다
+. Alandin 책 검색 API를 통해 손쉽게 도서 메타데이터를 불러오고, 내 서재의 도서 보유 현황과 대출 상태를 한눈에 파악할 수 있는 대시보드를 제공합니다
 . 총 8명의 기여자가 협업하여 완성한 프로젝트입니다
 .
 
@@ -9,8 +9,8 @@ Aivle 9th, Mini Project 4
 ✨ 1. 주요 기능 및 상세 설명 (Features)
 이 프로젝트는 사용자의 편의성과 직관적인 UX를 최우선으로 고려하여 개발되었습니다
 .
-🔍 스마트 도서 검색 및 등록 (Kakao API & AI)
-Kakao API 연동: 책 제목이나 저자만 입력해도 Kakao Book Search API를 통해 정확한 도서 정보(표지, 출판사, 저자 등)를 즉시 불러와 데이터베이스에 저장합니다
+🔍 스마트 도서 검색 및 등록 (Alandin API & AI)
+Alandin API 연동: 책 제목이나 저자만 입력해도 Alandin API Search API를 통해 정확한 도서 정보(표지, 출판사, 저자 등)를 즉시 불러와 데이터베이스에 저장합니다
 .
 AI 검색어 추천 (New 🚀): 사용자의 검색 경험을 극대화하기 위해 AI 기반의 검색어 추천 기능이 새롭게 도입되었습니다
 .
@@ -63,7 +63,7 @@ State Management: TanStack React Query 5
 Libraries: Recharts (시각화), Lucide React (아이콘), Axios (HTTP 통신)
 Backend & DB
 Database / BaaS: PocketBase (가볍고 빠른 NoSQL)
-External API: Kakao Book Search API
+External API: Alandin Search API
 
 --------------------------------------------------------------------------------
 🗄 4. 데이터베이스 스키마 및 구조
@@ -149,4 +149,5 @@ library-mini-project4/
 UI 고도화: 전체 도서 로딩 시 성능 향상을 위한 무한 스크롤(Infinite Scroll) 도입.
 
 --------------------------------------------------------------------------------
+
 License: MIT License
