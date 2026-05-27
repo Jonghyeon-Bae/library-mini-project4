@@ -31,6 +31,8 @@ export interface bookProps{
   user_id?:string
   created?:string
   updated?:string
+  category?:string
+  sales?: number
   cover?:string
   isbn13?:string
 }
